@@ -14,6 +14,7 @@ class RequestIDMiddleware(MiddlewareMixin):
 
 
 class CatchAllExceptionMiddleware(MiddlewareMixin):
+
     def process_exception(self, request, exception):
         return JsonResponse(
             {
@@ -25,3 +26,21 @@ class CatchAllExceptionMiddleware(MiddlewareMixin):
             },
             status=500,
         )
+
+    def process_response(self, request, response):
+        """
+        Convert Django HTML 404 responses into canonical JSON errors.
+        Needed because DEBUG=True bypasses handler404.
+        """
+        if response.status_code == 404 and response.get("Content-Type", "").startswith("text/html"):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_found",
+                        "message": "Not Found",
+                        "details": [],
+                    }
+                },
+                status=404,
+            )
+        return response

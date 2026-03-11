@@ -32,6 +32,17 @@ def health(request):
         "timestamp": timezone.now().isoformat()
     })
 
+def _json_error(code, message):
+    return JsonResponse({"error": {"code": code, "message": message, "details": []}})
+
+def custom_404(request, exception):
+    return _json_error("not_found", "Not Found")
+
+def custom_500(request):
+    return _json_error("internal_server_error", "An internal server error occurred.")
+
+
+
 urlpatterns = [
     path("", home),
     path("admin/", admin.site.urls),
@@ -48,3 +59,6 @@ urlpatterns = [
     path("api/v1/settings/", include("settings_app.urls")),
     path('api/v1/core/', include('core.urls')),
 ]
+
+handler404 = "backend.urls.custom_404"
+handler500 = "backend.urls.custom_500"

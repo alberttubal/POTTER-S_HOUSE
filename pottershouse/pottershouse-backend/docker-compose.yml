@@ -40,12 +40,44 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/minio/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
 
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pottershouse-backend-web
+    command: ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--worker-class", "gthread"]
+    volumes:
+      - .:/app:rw
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/api/v1/health/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+      
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+
+
+
+
+
+
+  
