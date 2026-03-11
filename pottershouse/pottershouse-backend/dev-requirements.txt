@@ -1,0 +1,18 @@
+# testing
+pytest==9.0.2
+pytest-django==4.12.0
+pytest-cov==4.1.0
+
+# formatting & linting
+black==24.3.0
+isort==5.13.0
+ruff==0.4.0
+
+# local dev helpers
+ipython
+factory_boy==3.2.1
+pre-commit==3.3.0
+tox==4.12.0
+
+# browser for selenium / e2e if needed (optional)
+# selenium==4.10.0
