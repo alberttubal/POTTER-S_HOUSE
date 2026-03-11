@@ -14,23 +14,37 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
+# backend/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponse
+from django.http import JsonResponse
+from django.utils import timezone
 
 def home(request):
-    return HttpResponse("Welcome to the Potter's House API! Please refer to the documentation for available endpoints.")
+    return JsonResponse({"message": "Welcome to Potter's House API. See /api/v1/health"}, status=200)
+
+def health(request):
+    # Return UTC timestamp (Django USE_TZ=True ensures timezone.now() is UTC)
+    return JsonResponse({
+        "status": "ok",
+        "timestamp": timezone.now().isoformat()
+    })
 
 urlpatterns = [
     path("", home),
     path("admin/", admin.site.urls),
-    path("api/bookings/", include("bookings.urls")),
-    path("api/packages/", include("packages.urls")),
-    path("api/admin_users/", include("admin_users.urls")),
-    path("api/uploads/", include("uploads.urls")),
-    path("api/testimonials/", include("testimonials.urls")),
-    path("api/faqs/", include("faqs.urls")),
-    path("api/email_outbox/", include("email_outbox.urls")),
-    path("api/idempotency_keys/", include("idempotency_keys.urls")),
-    path("api/settings/", include("settings_app.urls")),
+    # Public API (versioned)
+    path("api/v1/health/", health, name="api-health"),
+    path("api/v1/bookings/", include("bookings.urls")),
+    path("api/v1/packages/", include("packages.urls")),
+    path("api/v1/admin_users/", include("admin_users.urls")),
+    path("api/v1/uploads/", include("uploads.urls")),
+    path("api/v1/testimonials/", include("testimonials.urls")),
+    path("api/v1/faqs/", include("faqs.urls")),
+    path("api/v1/email_outbox/", include("email_outbox.urls")),
+    path("api/v1/idempotency_keys/", include("idempotency_keys.urls")),
+    path("api/v1/settings/", include("settings_app.urls")),
+    path('api/v1/core/', include('core.urls')),
 ]

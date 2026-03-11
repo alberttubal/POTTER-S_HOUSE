@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'storages',
     'celery',
-    'django_honeypot',  # For advanced PostgreSQL operations
+  # 'django_honeypot',  # For advanced PostgreSQL operations
     
     # Your apps
     'packages',
@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'email_outbox',
     'idempotency_keys',
     'settings_app',
+    'core',
 ]
 
 # ============================================================================
@@ -71,6 +72,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     "corsheaders.middleware.CorsMiddleware",  
+    "core.middleware.RequestIDMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -78,6 +80,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.CatchAllExceptionMiddleware",
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
@@ -154,6 +157,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    "EXCEPTION_HANDLER": "core.drf_exception_handler.custom_exception_handler",
 }
 
 # Simple JWT settings (tune in Phase 13)

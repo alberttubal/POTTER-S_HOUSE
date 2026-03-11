@@ -1,3 +1,15 @@
-from django.shortcuts import render
+from django.http import JsonResponse
+from django.utils.timezone import now
 
-# Create your views here.
+
+def health(request):
+    return JsonResponse(
+        {
+            "status": "ok",
+            "timestamp": now().isoformat(),
+        }
+    )
+
+
+def debug_error(request):
+    raise Exception("debug error")
