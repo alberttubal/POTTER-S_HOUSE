@@ -46,7 +46,10 @@ def custom_500(request):
 urlpatterns = [
     path("", home),
     path("admin/", admin.site.urls),
-    # Public API (versioned)
+    path("api/v1/admin/packages/", include("packages.admin_urls")),
+    path("api/v1/admin/bookings/", include("bookings.admin_urls")),
+
+    #PUBLIC API ENDPOINTS
     path("api/v1/health/", health, name="api-health"),
     path("api/v1/bookings/", include("bookings.urls")),
     path("api/v1/packages/", include("packages.urls")),

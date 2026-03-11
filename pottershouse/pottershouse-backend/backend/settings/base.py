@@ -34,6 +34,12 @@ DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # ============================================================================
+# AUTH_USER_MODEL: Use custom user model
+# ============================================================================
+AUTH_USER_MODEL = "admin_users.AdminUser"
+
+
+# ============================================================================
 # APPLICATION DEFINITION
 # ============================================================================
 INSTALLED_APPS = [

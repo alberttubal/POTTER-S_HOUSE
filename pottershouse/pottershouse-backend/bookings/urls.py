@@ -1,5 +1,6 @@
 from django.urls import path
+from .views import BookingCreatePublic
 
-app_name = "bookings"
-
-urlpatterns = []
+urlpatterns = [
+    path("", BookingCreatePublic.as_view(), name="bookings-create"),
+]
