@@ -2,6 +2,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
+from django.db import connections
 from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.test import APIClient, APITestCase
@@ -56,7 +57,10 @@ class BookingConcurrencyTests(TransactionTestCase):
 
     def _post(self, payload, idem_key):
         client = APIClient()
-        return client.post(BOOKING_URL, payload, format="json", HTTP_IDEMPOTENCY_KEY=idem_key)
+        try:
+            return client.post(BOOKING_URL, payload, format="json", HTTP_IDEMPOTENCY_KEY=idem_key)
+        finally:
+            connections.close_all()
 
     def test_concurrent_booking_conflict(self):
         payload = booking_payload()

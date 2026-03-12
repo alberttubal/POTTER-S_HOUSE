@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: potter
+          POSTGRES_PASSWORD: potterpass
+          POSTGRES_DB: potter_dev
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U potter" --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DJANGO_SETTINGS_MODULE: backend.settings.test
+      DJANGO_SECRET_KEY: ci-secret-key
+      DATABASE_URL: postgres://potter:potterpass@localhost:5432/potter_dev
+      SENTRY_DSN: ""
+      USE_REDIS_CACHE: "False"
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip
+        run: python -m pip install --upgrade pip
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Install dev requirements
+        run: pip install -r dev-requirements.txt
+      - name: Run migrations
+        run: python manage.py migrate --settings=backend.settings.test
+      - name: Run tests
+        run: python manage.py test --settings=backend.settings.test
