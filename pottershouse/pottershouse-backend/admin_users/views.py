@@ -84,8 +84,11 @@ class AdminRefreshView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        if getattr(settings, 'USE_REFRESH_COOKIE', True):
+        use_cookie = getattr(settings, 'USE_REFRESH_COOKIE', True)
+        if use_cookie:
             refresh_token = request.COOKIES.get(settings.REFRESH_COOKIE_NAME)
+            if not refresh_token:
+                refresh_token = request.data.get('refresh')
         else:
             refresh_token = request.data.get('refresh')
 

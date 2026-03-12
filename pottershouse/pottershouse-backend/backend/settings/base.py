@@ -9,38 +9,32 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 from datetime import timedelta
 
-
+# Load environment variables
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============================================================================
-# SECURITY: Pull secrets from .env (NEVER hardcode)
+# 1. SECURITY & BASIC CONFIGURATION
 # ============================================================================
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY is not set in the environment")
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-
-
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-
-# ============================================================================
-# AUTH_USER_MODEL: Use custom user model
-# ============================================================================
 AUTH_USER_MODEL = "admin_users.AdminUser"
 
-
 # ============================================================================
-# APPLICATION DEFINITION
+# 2. APPLICATIONS & MIDDLEWARE
 # ============================================================================
 INSTALLED_APPS = [
     'django_prometheus',
@@ -57,9 +51,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'storages',
     'celery',
-  # 'django_honeypot',  # For advanced PostgreSQL operations
     
-    # Your apps
+    # Local apps
     'packages',
     'bookings',
     'admin_users',
@@ -72,9 +65,6 @@ INSTALLED_APPS = [
     'core',
 ]
 
-# ============================================================================
-# MIDDLEWARE (CorsMiddleware MUST be first)
-# ============================================================================
 MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     "corsheaders.middleware.CorsMiddleware",  
@@ -110,7 +100,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 # ============================================================================
-# DATABASE: Dynamic config from .env
+# 3. DATABASE CONFIGURATION
 # ============================================================================
 DATABASES = {
     "default": dj_database_url.config(
@@ -119,9 +109,8 @@ DATABASES = {
     )
 }
 
-# Fallback safety if DATABASE_URL is empty during local dev:
+# Fallback for local development
 if not DATABASES["default"].get("NAME"):
-    # try component env vars
     DATABASES["default"].update(
         {
             "NAME": os.getenv("POSTGRES_DB", "potter_dev"),
@@ -132,60 +121,18 @@ if not DATABASES["default"].get("NAME"):
         }
     )
 
-DATABASES["default"]["OPTIONS"] = {
+DATABASES["default"] ["OPTIONS"] = {
     "options": "-c timezone=UTC"
 }
 
 # ============================================================================
-# PASSWORD VALIDATION & HASHING (Argon2id for security)
+# 4. AUTHENTICATION & PASSWORDS
 # ============================================================================
 PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.Argon2PasswordHasher",  # Argon2id via argon2-cffi
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
 ]
-
-# -------------------------
-# REST FRAMEWORK: JSON-only + JWT auth
-# -------------------------
-REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-    ],
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-    ],
-    # JWT auth globally; admin views should require auth/roles.
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-    # Optionally set a reasonable default permission, but we'll restrict admin endpoints explicitly.
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
-    ],
-    "EXCEPTION_HANDLER": "core.drf_exception_handler.custom_exception_handler",
-}
-
-# Simple JWT settings (tune in Phase 13)
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=int(os.getenv("JWT_ACCESS_EXPIRES", 3600))),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", 7))),
-    "AUTH_HEADER_TYPES": ("Bearer",),
-}
-
-
-USE_REFRESH_COOKIE = os.getenv("USE_REFRESH_COOKIE", "True") == "True"
-REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "pottershouse_refresh")
-REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "False") == "True"
-REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
-REFRESH_COOKIE_PATH = os.getenv("REFRESH_COOKIE_PATH", "/api/v1/admin/refresh")
-REFRESH_COOKIE_MAX_AGE = int(os.getenv("REFRESH_COOKIE_MAX_AGE", "604800"))
-FRONTEND_PASSWORD_RESET_URL = os.getenv(
-    "FRONTEND_PASSWORD_RESET_URL",
-    "https://pottershouse.example.com/admin/reset-password"
-)
-PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "1800"))
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -203,33 +150,68 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ============================================================================
-# INTERNATIONALIZATION & TIMEZONE (UTC for storage)
+# 5. REST FRAMEWORK & JWT
+# ============================================================================
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "EXCEPTION_HANDLER": "core.drf_exception_handler.custom_exception_handler",
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=int(os.getenv("JWT_ACCESS_EXPIRES", 3600))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", 7))),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# ============================================================================
+# 6. SESSION & COOKIE SETTINGS
+# ============================================================================
+USE_REFRESH_COOKIE = os.getenv("USE_REFRESH_COOKIE", "True") == "True"
+REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "pottershouse_refresh")
+REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "False") == "True"
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
+REFRESH_COOKIE_PATH = os.getenv("REFRESH_COOKIE_PATH", "/api/v1/admin/refresh")
+REFRESH_COOKIE_MAX_AGE = int(os.getenv("REFRESH_COOKIE_MAX_AGE", "604800"))
+FRONTEND_PASSWORD_RESET_URL = os.getenv("FRONTEND_PASSWORD_RESET_URL", "https://pottershouse.example.com/admin/reset-password")
+PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "1800"))
+
+# ============================================================================
+# 7. INTERNATIONALIZATION & TIMEZONE
 # ============================================================================
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"  # MUST be UTC for storage
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
 # ============================================================================
-# STATIC FILES
+# 8. STATIC FILES
 # ============================================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # ============================================================================
-# DEFAULT PRIMARY KEY FIELD TYPE
+# 9. DEFAULT PRIMARY KEY FIELD TYPE
 # ============================================================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-## -------------------------
-# CORS (headers required by frontend)
-# -------------------------
-# Install django-cors-headers and ensure CorsMiddleware is first in MIDDLEWARE.
+# ============================================================================
+# 10. CORS CONFIGURATION
+# ============================================================================
 CORS_ALLOWED_ORIGINS = [
     "https://staging.pottershouse.example.com",
     "https://pottershouse.example.com",
 ]
-# Allow the manual local dev origins if necessary:
 if DEBUG:
     CORS_ALLOWED_ORIGINS += ["http://localhost:3000", "http://127.0.0.1:3000"]
 
@@ -242,9 +224,9 @@ CORS_ALLOW_HEADERS = [
 ]
 CORS_EXPOSE_HEADERS = ["Retry-After", "Location"]
 
-# -------------------------
-# Security HTTP headers (toggle stricter when DEBUG=False)
-# -------------------------
+# ============================================================================
+# 11. SECURITY HEADERS
+# ============================================================================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True" and not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
@@ -253,10 +235,9 @@ SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0")) if not DEBUG el
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
-
-# -------------------------
-# Logging (basic; expand in Phase 15)
-# -------------------------
+# ============================================================================
+# 12. LOGGING
+# ============================================================================
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
