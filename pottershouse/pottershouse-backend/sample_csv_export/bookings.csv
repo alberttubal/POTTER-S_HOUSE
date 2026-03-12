@@ -1,0 +1,4 @@
+id,created_at,customer_name,phone,email,event_type,event_date_start,event_date_end,event_all_day,guests,package_id,dietary_needs,status,workflow_status,deposit_paid,notes
+af9f0980-9182-42ae-8074-e8f3da5d6791,2026-03-12T12:33:00.866280Z,Bot,000,bot@test.com,wedding,2030-01-01T10:00:00Z,2030-01-01T12:00:00Z,false,10,,,confirmed,new,false,
+2552f4c4-8126-4c54-a263-8151779fd43a,2026-03-12T08:36:44.853096Z,Bob,999,bob@example.com,Birthday,2026-03-25T02:00:00Z,2026-03-25T04:00:00Z,false,20,,,confirmed,new,false,
+25b95887-41ab-40f1-bf9d-f791632d5d2d,2026-03-11T16:02:40.835722Z,Alice,555,alice@example.com,Wedding,2026-03-22T02:00:00Z,2026-03-22T04:00:00Z,false,50,,,confirmed,new,false,

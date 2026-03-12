@@ -12,4 +12,4 @@ def health(request):
 
 
 def debug_error(request):
-    raise Exception("debug error")
+    raise Exception("Test error for Sentry")

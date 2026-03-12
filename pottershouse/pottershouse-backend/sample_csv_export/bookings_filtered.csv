@@ -1,0 +1,2 @@
+id,created_at,customer_name,phone,email,event_type,event_date_start,event_date_end,event_all_day,guests,package_id,dietary_needs,status,workflow_status,deposit_paid,notes
+af9f0980-9182-42ae-8074-e8f3da5d6791,2026-03-12T12:33:00.866280Z,Bot,000,bot@test.com,wedding,2030-01-01T10:00:00Z,2030-01-01T12:00:00Z,false,10,,,confirmed,new,false,

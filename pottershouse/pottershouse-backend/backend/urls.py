@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from admin_users.views import AdminLoginView, AdminRefreshView, AdminPasswordForgotView, AdminPasswordResetView
+from bookings.csv_export import BookingAdminCSV
 
 def home(request):
     return JsonResponse({'message': "Welcome to Potter's House API. See /api/v1/health"})
@@ -31,6 +32,8 @@ urlpatterns = [
     re_path(r'^api/v1/admin/refresh/?$', AdminRefreshView.as_view()),
     re_path(r'^api/v1/admin/password/forgot/?$', AdminPasswordForgotView.as_view()),
     re_path(r'^api/v1/admin/password/reset/?$', AdminPasswordResetView.as_view()),
+
+    re_path(r'^api/v1/admin/bookings\.csv/?$', BookingAdminCSV.as_view()),
 
     re_path(r'^api/v1/bookings/?', include('bookings.urls')),
     re_path(r'^api/v1/packages/?', include('packages.urls')),
