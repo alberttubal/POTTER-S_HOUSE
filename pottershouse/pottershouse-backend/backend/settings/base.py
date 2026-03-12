@@ -173,6 +173,20 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+
+USE_REFRESH_COOKIE = os.getenv("USE_REFRESH_COOKIE", "True") == "True"
+REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "pottershouse_refresh")
+REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "False") == "True"
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
+REFRESH_COOKIE_PATH = os.getenv("REFRESH_COOKIE_PATH", "/api/v1/admin/refresh")
+REFRESH_COOKIE_MAX_AGE = int(os.getenv("REFRESH_COOKIE_MAX_AGE", "604800"))
+FRONTEND_PASSWORD_RESET_URL = os.getenv(
+    "FRONTEND_PASSWORD_RESET_URL",
+    "https://pottershouse.example.com/admin/reset-password"
+)
+PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "1800"))
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

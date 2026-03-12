@@ -1,6 +1,7 @@
 import uuid
 from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse
+from django.conf import settings
 
 
 class RequestIDMiddleware(MiddlewareMixin):
@@ -13,19 +14,26 @@ class RequestIDMiddleware(MiddlewareMixin):
         return response
 
 
-class CatchAllExceptionMiddleware(MiddlewareMixin):
+class CatchAllExceptionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    def process_exception(self, request, exception):
-        return JsonResponse(
-            {
-                "error": {
-                    "code": "internal_server_error",
-                    "message": "An unexpected error occurred",
-                    "details": [],
-                }
-            },
-            status=500,
-        )
+    def __call__(self, request):
+        try:
+            return self.get_response(request)
+        except Exception:
+            if settings.DEBUG:
+                raise
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "internal_server_error",
+                        "message": "An unexpected error occurred",
+                        "details": [],
+                    }
+                },
+                status=500,
+            )
 
     def process_response(self, request, response):
         """
