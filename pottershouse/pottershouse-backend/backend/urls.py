@@ -3,6 +3,7 @@ from django.urls import path, include, re_path
 from django.http import JsonResponse
 from django.utils import timezone
 from django_prometheus import exports
+from django.conf import settings
 
 from admin_users.views import AdminLoginView, AdminRefreshView, AdminPasswordForgotView, AdminPasswordResetView
 from bookings.csv_export import BookingAdminCSV
@@ -47,13 +48,14 @@ root_patterns = [
     path('', home),
     path('admin/', admin.site.urls),
     re_path(r'^api/v1/health/?$', health, name='api-health'),
-    
 ]
 
 # Monitoring & Metrics
-monitoring_patterns = [
-    path("metrics/", exports.ExportToDjangoView, name="prometheus-metrics"),
-]
+monitoring_patterns = []
+if settings.DEBUG or getattr(settings, "ENABLE_METRICS", False):
+    monitoring_patterns = [
+        path("metrics/", exports.ExportToDjangoView, name="prometheus-metrics"),
+    ]
 
 
 # Authentication & Admin Login
@@ -90,7 +92,6 @@ admin_api_patterns = [
     re_path(r'^api/v1/admin/testimonials/?', include('testimonials.admin_urls')),
     re_path(r'^api/v1/admin_users/?', include('admin_users.urls')),
     re_path(r'^api/v1/admin/settings/?', include('settings_app.urls')),
-
 ]
 
 

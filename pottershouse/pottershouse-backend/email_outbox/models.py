@@ -4,7 +4,8 @@ from django.utils import timezone
 from core.models import TimeStampedUUIDModel
 
 MAX_RETRY_ATTEMPTS = 5
-RETRY_DELAY_SECONDS = 300  # 5 minutes
+RETRY_INITIAL_DELAY = 30
+RETRY_MULTIPLIER = 2
 ALERT_AFTER_ATTEMPTS = 3
 
 
@@ -59,7 +60,8 @@ class EmailOutbox(TimeStampedUUIDModel):
             return False
         if not self.last_attempt_at:
             return True
-        return timezone.now() >= self.last_attempt_at + timedelta(seconds=RETRY_DELAY_SECONDS)
+        delay = RETRY_INITIAL_DELAY * (RETRY_MULTIPLIER ** max(self.attempts - 1, 0))
+        return timezone.now() >= self.last_attempt_at + timedelta(seconds=delay)
 
     def mark_sent(self):
         self.status = "sent"
