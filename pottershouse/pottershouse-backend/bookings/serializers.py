@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from .models import Booking
 
+
 class BookingBaseSerializer(serializers.ModelSerializer):
     event_all_day = serializers.BooleanField(required=True)
 
@@ -28,26 +29,25 @@ class BookingBaseSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
-        def validate(self, attrs):
-            now = timezone.now()
-            instance = getattr(self, "instance", None)
+    def validate(self, attrs):
+        now = timezone.now()
+        instance = getattr(self, "instance", None)
 
-            start = attrs.get("event_date_start", getattr(instance, "event_date_start", None))
-            end = attrs.get("event_date_end", getattr(instance, "event_date_end", None))
+        start = attrs.get("event_date_start", getattr(instance, "event_date_start", None))
+        end = attrs.get("event_date_end", getattr(instance, "event_date_end", None))
 
-            # Only enforce "start in future" on create or when start changes.
-            start_changed = instance is None or ("event_date_start" in attrs and start != instance.event_date_start)
+        # Only enforce "start in future" on create or when start changes.
+        start_changed = instance is None or ("event_date_start" in attrs and start != instance.event_date_start)
 
-            if start and start_changed and start < now:
-                raise serializers.ValidationError(
-                    {"event_date_start": "event_date_start cannot be in the past."}
-                )
-            if start and end and end < start:
-                raise serializers.ValidationError(
-                    {"event_date_end": "event_date_end must be after or equal to event_date_start."}
-                )
-            return attrs
-
+        if start and start_changed and start < now:
+            raise serializers.ValidationError(
+                {"event_date_start": "event_date_start cannot be in the past."}
+            )
+        if start and end and end < start:
+            raise serializers.ValidationError(
+                {"event_date_end": "event_date_end must be after or equal to event_date_start."}
+            )
+        return attrs
 
 
 class BookingSerializer(BookingBaseSerializer):
@@ -65,6 +65,7 @@ class BookingSerializer(BookingBaseSerializer):
     def create(self, validated_data):
         validated_data.pop("honeypot", None)
         return super().create(validated_data)
+
 
 class BookingAdminSerializer(BookingBaseSerializer):
     class Meta(BookingBaseSerializer.Meta):

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: potterpass
       POSTGRES_DB: potter_dev
     ports:
-       - "5433:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,13 +45,12 @@ services:
       timeout: 5s
       retries: 5
 
-
   web:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: pottershouse-backend-web
-    command: ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--worker-class", "gthread"]
+    command: ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--worker-class", "gthread", "--timeout", "120"]
     volumes:
       - .:/app:rw
     ports:
@@ -59,25 +58,35 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/api/v1/health/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pottershouse-backend-celery
+    command: ["celery", "-A", "backend", "worker", "-l", "info"]
+    volumes:
+      - .:/app:rw
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-      
 volumes:
   postgres_data:
   redis_data:
   minio_data:
-
-
-
-
-
-
-  

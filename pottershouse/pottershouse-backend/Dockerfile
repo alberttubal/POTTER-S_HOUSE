@@ -1,4 +1,3 @@
-# Dockerfile
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -7,12 +6,12 @@ ENV POETRY_VIRTUALENVS_CREATE=false
 
 WORKDIR /app
 
-# Install build deps
+# Install build and runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
-    netcat \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for layer caching
@@ -28,6 +27,10 @@ RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
-# Use entrypoint to run migrations then start gunicorn
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health/ || exit 1
+
+# Use entrypoint to wait for DB, run migrations, then start gunicorn
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--worker-class", "gthread"]
+CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--worker-class", "gthread", "--timeout", "120"]

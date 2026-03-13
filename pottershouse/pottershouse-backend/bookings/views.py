@@ -42,6 +42,7 @@ class BookingCreatePublic(generics.CreateAPIView):
             window_seconds=getattr(settings, "BOOKINGS_RATE_WINDOW", 3600),
         )
         return limiter(super().dispatch)(request, *args, **kwargs)
+    
 
     def create(self, request, *args, **kwargs):
         idem_key = request.headers.get("Idempotency-Key")
@@ -55,74 +56,80 @@ class BookingCreatePublic(generics.CreateAPIView):
 
         payload_hash = request_hash(request.data)
 
-        existing = IdempotencyKey.objects.filter(key=idem_key).first()
-        if existing and existing.expires_at <= timezone.now():
-            existing.delete()
-            existing = None
+        with transaction.atomic():
+            # Serialize same-key requests inside the DB transaction.
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [idem_key])
 
-        if existing:
-            if existing.request_hash != payload_hash:
-                return error_response(
-                    code="idempotency_key_payload_mismatch",
-                    message="Idempotency key payload mismatch.",
-                    details=[{"field": None, "message": "Idempotency key already used with a different payload."}],
+            existing = IdempotencyKey.objects.select_for_update().filter(key=idem_key).first()
+            if existing and existing.expires_at <= timezone.now():
+                existing.delete()
+                existing = None
+
+            if existing:
+                if existing.request_hash != payload_hash:
+                    response = error_response(
+                        code="idempotency_key_payload_mismatch",
+                        message="Idempotency key payload mismatch.",
+                        details=[{"field": None, "message": "Idempotency key already used with a different payload."}],
+                        status=400,
+                    )
+                else:
+                    response = Response(existing.response_body, status=existing.response_status)
+                    if existing.response_headers:
+                        for header, value in existing.response_headers.items():
+                            response[header] = value
+                return response
+
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                response = error_response(
+                    code="validation_error",
+                    message="Validation failed",
+                    details=[{"field": k, "message": v} for k, v in serializer.errors.items()],
                     status=400,
                 )
-            response = Response(existing.response_body, status=existing.response_status)
-            if existing.response_headers:
-                for header, value in existing.response_headers.items():
-                    response[header] = value
-            return response
+                _store_idempotency_response(idem_key, payload_hash, response)
+                return response
 
+            try:
+                # Save booking inside a nested transaction so we can still record idempotency on conflict.
+                with transaction.atomic():
+                    booking = serializer.save(status="confirmed", workflow_status="new")
 
-        serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            response = error_response(
-                code="validation_error",
-                message="Validation failed",
-                details=[{"field": k, "message": v} for k, v in serializer.errors.items()],
-                status=400,
-            )
-            _store_idempotency_response(idem_key, payload_hash, response)
-            return response
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            "INSERT INTO bookings_confirmed_ranges (booking_id, event_range) VALUES (%s, tstzrange(%s, %s, '[)'))",
+                            [str(booking.id), booking.event_date_start, booking.event_date_end],
+                        )
 
+                    EmailOutbox.queue_booking_email(booking)
 
-        response = None
-        try:
-            with transaction.atomic():
-                booking = serializer.save(status="confirmed", workflow_status="new")
-
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "INSERT INTO bookings_confirmed_ranges (booking_id, event_range) VALUES (%s, tstzrange(%s, %s, '[)'))",
-                        [str(booking.id), booking.event_date_start, booking.event_date_end],
+                    response_data = BookingSerializer(booking).data
+                    response = Response(response_data, status=201)
+                    location = f"/api/v1/admin/bookings/{booking.id}/"
+                    response["Location"] = location
+                    _store_idempotency_response(
+                        idem_key,
+                        payload_hash,
+                        response,
+                        extra_headers={"Location": location},
                     )
+                    return response
 
-                EmailOutbox.queue_booking_email(booking)
-
-                response_data = BookingSerializer(booking).data
-                response = Response(response_data, status=201)
-                location = f"/api/v1/admin/bookings/{booking.id}/"
-                response["Location"] = location
-                _store_idempotency_response(
-                    idem_key,
-                    payload_hash,
-                    response,
-                    extra_headers={"Location": location},
+            except IntegrityError:
+                response = error_response(
+                    code="booking_conflict",
+                    message="Requested time conflicts with an existing booking.",
+                    details=[],
+                    status=409,
+                    conflictingBookings=[],
+                    suggested_alternatives=[],
                 )
+                _store_idempotency_response(idem_key, payload_hash, response)
+                return response
 
-
-        except IntegrityError:
-            response = error_response(
-                code="booking_conflict",
-                message="Requested time conflicts with an existing booking.",
-                details=[],
-                status=409,
-                conflictingBookings=[],
-                suggested_alternatives=[],
-            )
-            _store_idempotency_response(idem_key, payload_hash, response)
-            return response
+    
 
 
 class BookingAdminList(generics.ListAPIView):

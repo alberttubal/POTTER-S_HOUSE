@@ -34,6 +34,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         choices=[
                             ("queued", "queued"),
+                            ("processing", "processing"),
                             ("sent", "sent"),
                             ("failed", "failed"),
                         ],
@@ -44,9 +45,16 @@ class Migration(migrations.Migration):
                 ("attempts", models.PositiveIntegerField(default=0)),
                 ("last_attempt_at", models.DateTimeField(blank=True, null=True)),
                 ("sent_at", models.DateTimeField(blank=True, null=True)),
+                ("error_message", models.TextField(blank=True, null=True)),
+                ("manual_review", models.BooleanField(default=False)),
             ],
             options={
                 "db_table": "email_outbox",
+                "indexes": [
+                    models.Index(fields=["status", "created_at"]),
+                    models.Index(fields=["to_email"]),
+                    models.Index(fields=["sent_at"]),
+                ],
             },
         ),
     ]

@@ -180,7 +180,12 @@ SIMPLE_JWT = {
 # ============================================================================
 USE_REFRESH_COOKIE = os.getenv("USE_REFRESH_COOKIE", "True") == "True"
 REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "pottershouse_refresh")
-REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "False") == "True"
+
+REFRESH_COOKIE_SECURE = os.getenv(
+    "REFRESH_COOKIE_SECURE",
+    "True" if not DEBUG else "False"
+) == "True"
+
 REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
 REFRESH_COOKIE_PATH = os.getenv("REFRESH_COOKIE_PATH", "/api/v1/admin/refresh")
 REFRESH_COOKIE_MAX_AGE = int(os.getenv("REFRESH_COOKIE_MAX_AGE", "604800"))

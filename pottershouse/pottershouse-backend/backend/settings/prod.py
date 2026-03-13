@@ -49,11 +49,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# Sentry error tracking (you have it in .env)
-if os.getenv("SENTRY_DSN"):
-    import sentry_sdk
-    sentry_sdk.init(
-        dsn=os.getenv("SENTRY_DSN"),
-        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
-        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
-    )
+
+
