@@ -61,6 +61,8 @@ uploads/
 # Env files
 .env
 .env.* 
+!.env.example
+
 
 # VSCode / JetBrains
 .vscode/
@@ -72,3 +74,19 @@ docker-compose.override.yml
 
 # pyenv
 .python-version
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE temp files
+*.swp
+*.swo
+*~
+
+# Local test databases
+test_db.sqlite3
+
+# Node (if you add frontend later)
+node_modules/
+npm-debug.log
