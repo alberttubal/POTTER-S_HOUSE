@@ -9,18 +9,19 @@ def _as_details(data):
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and "field" in item and "message" in item:
-                details.append(item)
+                details.append({"field": item["field"], "message": str(item["message"])})
             else:
-                details.append({"field": None, "message": item})
+                details.append({"field": None, "message": str(item)})
         return details
 
     if isinstance(data, dict):
         for field, messages in data.items():
-            details.append({"field": field, "message": messages})
+            details.append({"field": field, "message": str(messages)})
         return details
 
-    details.append({"field": None, "message": data})
+    details.append({"field": None, "message": str(data)})
     return details
+
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)

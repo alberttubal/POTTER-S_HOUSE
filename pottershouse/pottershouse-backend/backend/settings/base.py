@@ -114,15 +114,15 @@ DATABASES = {
 if not DATABASES["default"].get("NAME"):
     DATABASES["default"].update(
         {
-            "NAME": os.getenv("POSTGRES_DB", "potter_dev"),
-            "USER": os.getenv("POSTGRES_USER", "potter"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "potterpass"),
-            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-            "PORT": os.getenv("POSTGRES_PORT", "5433"),
+            "NAME": os.getenv("DB_NAME", "potter_dev"),
+            "USER": os.getenv("DB_USER", "potter"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "potterpass"),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5433"),
         }
     )
 
-DATABASES["default"] ["OPTIONS"] = {
+DATABASES["default"]["OPTIONS"] = {
     "options": "-c timezone=UTC"
 }
 
@@ -288,12 +288,16 @@ REDIS_DB = os.getenv('REDIS_DB', '0')
 WHATSAPP_CONTACT_LINK = os.getenv('WHATSAPP_CONTACT_LINK', 'https://wa.me/639171234567?text=Hello')  
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@pottershouse.com')  
  
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')  
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)  
-CELERY_ACCEPT_CONTENT = ['json']  
-CELERY_TASK_SERIALIZER = 'json'  
-CELERY_RESULT_SERIALIZER = 'json'  
-CELERY_TIMEZONE = 'UTC'  
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{int(REDIS_DB) + 1}"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+CELERY_ENABLE_UTC = True
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+
 CELERY_BEAT_SCHEDULE = {  
     'cleanup-idempotency-keys-daily': {  
         'task': 'idempotency_keys.tasks.cleanup_idempotency_keys',  
@@ -304,3 +308,19 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 60.0,  
     },  
 }  
+
+# ============================================================================
+# 15. EMAIL CONFIGURATION
+# ============================================================================
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '1025'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+
+# ============================================================================
+# 16. MEDIA FILES
+# ============================================================================
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
