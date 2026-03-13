@@ -15,6 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 from datetime import timedelta
+from celery.schedules import crontab
 
 # Load environment variables
 load_dotenv()
@@ -85,7 +86,7 @@ ROOT_URLCONF = "backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -276,3 +277,30 @@ if SENTRY_DSN:
     except Exception as exc:
         import logging
         logging.getLogger(__name__).warning('Sentry disabled due to init error: %s', exc)
+ 
+# ============================================================================  
+# 14. REDIS AND CELERY  
+# ============================================================================  
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')  
+REDIS_PORT = os.getenv('REDIS_PORT', '6379')  
+REDIS_DB = os.getenv('REDIS_DB', '0')  
+ 
+WHATSAPP_CONTACT_LINK = os.getenv('WHATSAPP_CONTACT_LINK', 'https://wa.me/639171234567?text=Hello')  
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@pottershouse.com')  
+ 
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')  
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)  
+CELERY_ACCEPT_CONTENT = ['json']  
+CELERY_TASK_SERIALIZER = 'json'  
+CELERY_RESULT_SERIALIZER = 'json'  
+CELERY_TIMEZONE = 'UTC'  
+CELERY_BEAT_SCHEDULE = {  
+    'cleanup-idempotency-keys-daily': {  
+        'task': 'idempotency_keys.tasks.cleanup_idempotency_keys',  
+        'schedule': crontab(minute=0, hour=0),  
+    },  
+    'dispatch-email-outbox': {  
+        'task': 'email_outbox.tasks.dispatch_outbox',  
+        'schedule': 60.0,  
+    },  
+}  

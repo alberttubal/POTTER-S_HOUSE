@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime, parse_date
-from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAdminUser
 from rest_framework.views import APIView
 
 from core.utils import error_response
@@ -13,7 +13,7 @@ from .models import Booking
 
 
 class BookingAdminCSV(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def _default_tz(self):
         return timezone.get_default_timezone()

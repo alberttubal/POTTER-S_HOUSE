@@ -1,0 +1,10 @@
+Hi {{ customer_name|default:'there' }}, 
+ 
+Thanks for your booking request. We received it and will contact you shortly. 
+ 
+Booking ID: {{ booking_id }} 
+ 
+If you need immediate assistance, reach us on WhatsApp: 
+{{ whatsapp_link }} 
+ 
+- Potter's House

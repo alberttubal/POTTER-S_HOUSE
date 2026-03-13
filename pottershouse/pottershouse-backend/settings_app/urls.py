@@ -1,5 +1,7 @@
-# backend/packages/urls.py
-from django.urls import path
+from rest_framework.routers import DefaultRouter
+from .views import SettingAdminViewSet
 
-app_name = 'settings_app'
-urlpatterns = []
+router = DefaultRouter()
+router.register(r"", SettingAdminViewSet, basename="admin-settings")
+
+urlpatterns = router.urls
