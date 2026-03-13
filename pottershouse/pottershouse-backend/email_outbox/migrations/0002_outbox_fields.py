@@ -1,5 +1,4 @@
-from django.db import migrations, models
-
+from django.db import migrations
 
 class Migration(migrations.Migration):
 
@@ -7,27 +6,4 @@ class Migration(migrations.Migration):
         ("email_outbox", "0001_initial"),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name="emailoutbox",
-            name="error_message",
-            field=models.TextField(null=True, blank=True),
-        ),
-        migrations.AddField(
-            model_name="emailoutbox",
-            name="manual_review",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddIndex(
-            model_name="emailoutbox",
-            index=models.Index(fields=["status", "created_at"]),
-        ),
-        migrations.AddIndex(
-            model_name="emailoutbox",
-            index=models.Index(fields=["to_email"]),
-        ),
-        migrations.AddIndex(
-            model_name="emailoutbox",
-            index=models.Index(fields=["sent_at"]),
-        ),
-    ]
+    operations = []

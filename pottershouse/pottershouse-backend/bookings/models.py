@@ -3,6 +3,9 @@ from django.core.validators import MinValueValidator
 from core.models import TimeStampedUUIDModel
 from core.fields import PostgresEnumField
 from packages.models import Package
+from django.contrib.postgres.fields import DateTimeRangeField
+
+
 
 class Booking(TimeStampedUUIDModel):
     STATUS_CHOICES = [
@@ -57,3 +60,18 @@ class Booking(TimeStampedUUIDModel):
 
     def __str__(self):
         return f"{self.customer_name} ({self.event_date_start})"
+
+
+class BookingConfirmedRange(models.Model):
+    booking = models.OneToOneField(
+        Booking,
+        primary_key=True,
+        db_column="booking_id",
+        on_delete=models.CASCADE,
+        related_name="confirmed_range",
+    )
+    event_range = DateTimeRangeField()
+
+    class Meta:
+        db_table = "bookings_confirmed_ranges"
+        

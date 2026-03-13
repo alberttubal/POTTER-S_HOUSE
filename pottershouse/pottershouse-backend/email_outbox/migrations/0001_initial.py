@@ -51,9 +51,9 @@ class Migration(migrations.Migration):
             options={
                 "db_table": "email_outbox",
                 "indexes": [
-                    models.Index(fields=["status", "created_at"]),
-                    models.Index(fields=["to_email"]),
-                    models.Index(fields=["sent_at"]),
+                    models.Index(fields=["status", "created_at"], name="outbox_status_created_idx"),
+                    models.Index(fields=["to_email"], name="outbox_to_email_idx"),
+                    models.Index(fields=["sent_at"], name="outbox_sent_at_idx"),
                 ],
             },
         ),

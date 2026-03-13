@@ -1,7 +1,7 @@
 from datetime import datetime, time
 
 from django.conf import settings
-from django.db import connection, transaction, IntegrityError
+from django.db import connection, transaction, IntegrityError, DatabaseError
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime, parse_date
@@ -19,6 +19,7 @@ from idempotency_keys.models import IdempotencyKey
 from .models import Booking
 from .serializers import BookingSerializer, BookingAdminSerializer
 
+
 def _store_idempotency_response(idem_key, request_hash, response, extra_headers=None):
     headers = extra_headers or {}
     IdempotencyKey.objects.create(
@@ -29,6 +30,14 @@ def _store_idempotency_response(idem_key, request_hash, response, extra_headers=
         response_headers=headers,
         expires_at=IdempotencyKey.ttl_expires_at(),
     )
+
+
+def _is_exclusion_violation(exc):
+    # PostgreSQL SQLSTATE 23P01 = exclusion_violation
+    if getattr(exc, "pgcode", None) == "23P01":
+        return True
+    cause = getattr(exc, "__cause__", None)
+    return getattr(cause, "pgcode", None) == "23P01"
 
 
 class BookingCreatePublic(generics.CreateAPIView):
@@ -117,7 +126,9 @@ class BookingCreatePublic(generics.CreateAPIView):
                     )
                     return response
 
-            except IntegrityError:
+            except (IntegrityError, DatabaseError) as exc:
+                if not _is_exclusion_violation(exc):
+                    raise
                 response = error_response(
                     code="booking_conflict",
                     message="Requested time conflicts with an existing booking.",
@@ -128,8 +139,6 @@ class BookingCreatePublic(generics.CreateAPIView):
                 )
                 _store_idempotency_response(idem_key, payload_hash, response)
                 return response
-
-    
 
 
 class BookingAdminList(generics.ListAPIView):
@@ -215,6 +224,7 @@ class BookingAdminList(generics.ListAPIView):
         self.queryset = qs
         return super().list(request, *args, **kwargs)
 
+
 class BookingAdminDetail(generics.RetrieveUpdateAPIView):
     serializer_class = BookingAdminSerializer
     permission_classes = [IsAdminUser]
@@ -243,13 +253,18 @@ class BookingAdminDetail(generics.RetrieveUpdateAPIView):
                     if instance.status != "confirmed" or range_changed:
                         with connection.cursor() as cursor:
                             cursor.execute("DELETE FROM bookings_confirmed_ranges WHERE booking_id = %s", [str(instance.id)])
-                            cursor.execute("INSERT INTO bookings_confirmed_ranges (booking_id, event_range) VALUES (%s, tstzrange(%s, %s, '[)'))", [str(instance.id), new_start, new_end])
+                            cursor.execute(
+                                "INSERT INTO bookings_confirmed_ranges (booking_id, event_range) VALUES (%s, tstzrange(%s, %s, '[)'))",
+                                [str(instance.id), new_start, new_end]
+                            )
                 elif instance.status == "confirmed" and new_status == "cancelled":
                     with connection.cursor() as cursor:
                         cursor.execute("DELETE FROM bookings_confirmed_ranges WHERE booking_id = %s", [str(instance.id)])
 
                 booking = serializer.save()
-        except IntegrityError:
+        except (IntegrityError, DatabaseError) as exc:
+            if not _is_exclusion_violation(exc):
+                raise
             return error_response(
                 code="booking_conflict",
                 message="Requested time conflicts with an existing booking.",
