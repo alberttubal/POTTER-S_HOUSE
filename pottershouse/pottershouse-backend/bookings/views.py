@@ -34,10 +34,33 @@ def _store_idempotency_response(idem_key, request_hash, response, extra_headers=
 
 def _is_exclusion_violation(exc):
     # PostgreSQL SQLSTATE 23P01 = exclusion_violation
-    if getattr(exc, "pgcode", None) == "23P01":
+    sqlstate = getattr(exc, "pgcode", None) or getattr(exc, "sqlstate", None)
+    if sqlstate == "23P01":
         return True
+
+    diag = getattr(exc, "diag", None)
+    if diag and getattr(diag, "constraint_name", None) == "bookings_confirmed_ranges_no_overlap":
+        return True
+
+    msg = str(exc).lower()
+    if "bookings_confirmed_ranges_no_overlap" in msg or "exclusion" in msg:
+        return True
+
     cause = getattr(exc, "__cause__", None)
-    return getattr(cause, "pgcode", None) == "23P01"
+    while cause:
+        sqlstate = getattr(cause, "pgcode", None) or getattr(cause, "sqlstate", None)
+        if sqlstate == "23P01":
+            return True
+        diag = getattr(cause, "diag", None)
+        if diag and getattr(diag, "constraint_name", None) == "bookings_confirmed_ranges_no_overlap":
+            return True
+        if cause.__class__.__name__ == "ExclusionViolation":
+            return True
+        if "bookings_confirmed_ranges_no_overlap" in str(cause).lower() or "exclusion" in str(cause).lower():
+            return True
+        cause = getattr(cause, "__cause__", None)
+
+    return False
 
 
 class BookingCreatePublic(generics.CreateAPIView):
