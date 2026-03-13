@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from .exceptions import canonical_error
 
+
 def _as_details(data):
     details = []
     if isinstance(data, list):
@@ -35,9 +36,30 @@ def custom_exception_handler(exc, context):
         return Response(body, status=status)
 
     details = _as_details(response.data)
-    if isinstance(exc, ValidationError) or response.status_code == 400:
-        code = "validation_error"
-        message = "Validation failed"
+    status_code = response.status_code
+
+    if status_code == 400:
+        if isinstance(exc, ValidationError):
+            code = "validation_error"
+            message = "Validation failed"
+        else:
+            code = "request_error"
+            message = "Request failed"
+    elif status_code == 401:
+        code = "unauthorized"
+        message = "Unauthorized"
+    elif status_code == 403:
+        code = "forbidden"
+        message = "Forbidden"
+    elif status_code == 404:
+        code = "not_found"
+        message = "Not Found"
+    elif status_code == 409:
+        code = "conflict"
+        message = "Conflict"
+    elif status_code == 429:
+        code = "rate_limited"
+        message = "Too many requests"
     else:
         code = "request_error"
         message = "Request failed"
@@ -46,7 +68,7 @@ def custom_exception_handler(exc, context):
         code,
         message,
         details=details,
-        status=response.status_code,
+        status=status_code,
     )
 
     response.data = body

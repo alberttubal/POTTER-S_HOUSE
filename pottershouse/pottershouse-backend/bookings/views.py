@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from core.pagination import StandardResultsSetPagination
-from core.permissions import IsAdminUser
+from core.permissions import IsAdminUser, RBACPermission
+from core.metrics import inc_bookings_created
 from core.ratelimit import rate_limit
 from core.utils import error_response, request_hash
 from email_outbox.models import EmailOutbox
@@ -137,6 +138,8 @@ class BookingCreatePublic(generics.CreateAPIView):
 
                     EmailOutbox.queue_booking_email(booking)
 
+                    inc_bookings_created()
+
                     response_data = BookingSerializer(booking).data
                     response = Response(response_data, status=201)
                     location = f"/api/v1/admin/bookings/{booking.id}/"
@@ -166,7 +169,8 @@ class BookingCreatePublic(generics.CreateAPIView):
 
 class BookingAdminList(generics.ListAPIView):
     serializer_class = BookingAdminSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, RBACPermission]
+    permission_map = {"GET": "bookings.view_booking"}
     pagination_class = StandardResultsSetPagination
 
     def _default_tz(self):
@@ -250,7 +254,8 @@ class BookingAdminList(generics.ListAPIView):
 
 class BookingAdminDetail(generics.RetrieveUpdateAPIView):
     serializer_class = BookingAdminSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, RBACPermission]
+    permission_map = {"GET": "bookings.view_booking", "PUT": "bookings.change_booking", "PATCH": "bookings.change_booking"}
     queryset = Booking.objects.all()
 
     def update(self, request, *args, **kwargs):

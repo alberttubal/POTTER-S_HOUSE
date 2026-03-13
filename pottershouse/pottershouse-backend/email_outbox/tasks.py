@@ -6,6 +6,9 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 import sentry_sdk
 
+from core.alerts import send_pagerduty_event
+from core.metrics import observe_outbox_latency
+
 from .models import EmailOutbox, MAX_RETRY_ATTEMPTS, ALERT_AFTER_ATTEMPTS
 
 
@@ -16,6 +19,12 @@ def _render_body(template_name, payload):
 
 def _send_message(message):
     now = timezone.now()
+    alert_needed = (message.attempts + 1) > ALERT_AFTER_ATTEMPTS and not message.manual_review
+    try:
+        observe_outbox_latency((now - message.created_at).total_seconds())
+    except Exception:
+        pass
+
     try:
         payload = dict(message.payload or {})
         payload.setdefault(
@@ -38,21 +47,31 @@ def _send_message(message):
             message.save(update_fields=['manual_review', 'updated_at'])
             with sentry_sdk.push_scope() as scope:
                 scope.set_context('email_outbox', {
-                    'email_outbox_id': str(message.id),
-                    'to_email': message.to_email,
-                    'attempts': message.attempts,
+                        'email_outbox_id': str(message.id),
+                        'to_email': message.to_email,
+                        'attempts': message.attempts,
                 })
                 sentry_sdk.capture_message(
-                    'Email outbox failed more than 3 times (manual review required)',
-                    level='error'
+                        'Email outbox failed more than 3 times (manual review required)',
+                        level='error'
                 )
+        if alert_needed:
+            send_pagerduty_event(
+                'Email outbox failed more than 3 times',
+                severity='error',
+                source='pottershouse-backend',
+                custom_details={
+                        'email_outbox_id': str(message.id),
+                        'to_email': message.to_email,
+                        'attempts': message.attempts,
+                },
+            )
         return False
 
     message.mark_sent()
     message.last_attempt_at = now
     message.save(update_fields=['last_attempt_at', 'updated_at'])
     return True
-
 
 @shared_task
 def process_email_outbox(limit=50):

@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.conf import settings
 import sentry_sdk
 
+from core.metrics import HTTP_5XX_TOTAL
 
 
 class RequestIDMiddleware(MiddlewareMixin):
@@ -14,35 +15,51 @@ class RequestIDMiddleware(MiddlewareMixin):
         if hasattr(request, "request_id"):
             response["X-Request-ID"] = request.request_id
         return response
+ 
+ 
+class RequireJSONContentTypeMiddleware(MiddlewareMixin): 
+    def process_request(self, request): 
+        if request.method in ('POST', 'PUT', 'PATCH'): 
+            content_type = request.META.get('CONTENT_TYPE', '') 
+            if content_type.startswith('multipart/form-data'): 
+                return None 
+            if not content_type.startswith('application/json'): 
+                return JsonResponse( 
+                    { 
+                        'error': { 
+                            'code': 'invalid_content_type', 
+                            'message': 'Content-Type must be application/json.', 
+                            'details': [], 
+                        }, 
+                    }, 
+                    status=400, 
+                ) 
+        return None 
 
 
-class CatchAllExceptionMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        try:
-            return self.get_response(request)
-        except Exception as e:
-            if settings.DEBUG:
-                raise 
-            sentry_sdk.capture_exception(e)
-            return JsonResponse(
-                {
-                    "error": {
-                        "code": "internal_server_error",
-                        "message": "An unexpected error occurred",
-                        "details": [],
-                    }
+class CatchAllExceptionMiddleware(MiddlewareMixin):
+    def process_exception(self, request, exception):
+        if settings.DEBUG:
+            return None
+        sentry_sdk.capture_exception(exception)
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_server_error",
+                    "message": "An unexpected error occurred",
+                    "details": [],
                 },
-                status=500,
-            )
+            },
+            status=500,
+        )
 
     def process_response(self, request, response):
-        """
-        Convert Django HTML 404 responses into canonical JSON errors.
-        Needed because DEBUG=True bypasses handler404.
-        """
+        if response.status_code >= 500:
+            try:
+                HTTP_5XX_TOTAL.labels(path=request.path).inc()
+            except Exception:
+                pass
+
         if response.status_code == 404 and response.get("Content-Type", "").startswith("text/html"):
             return JsonResponse(
                 {
@@ -50,7 +67,7 @@ class CatchAllExceptionMiddleware:
                         "code": "not_found",
                         "message": "Not Found",
                         "details": [],
-                    }
+                    },
                 },
                 status=404,
             )

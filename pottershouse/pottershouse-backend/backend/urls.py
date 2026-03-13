@@ -23,8 +23,8 @@ def health(request):
     )
 
 
-def _json_error(code, message):
-    return JsonResponse({'error': {'code': code, 'message': message, 'details': []}})
+def _json_error(code, message, status=400):
+    return JsonResponse({'error': {'code': code, 'message': message, 'details': []}}, status=status)
 
 
 # ============================================================================
@@ -32,11 +32,11 @@ def _json_error(code, message):
 # ============================================================================
 
 def custom_404(request, exception):
-    return _json_error('not_found', 'Not Found')
+    return _json_error('not_found', 'Not Found', status=404)
 
 
 def custom_500(request):
-    return _json_error('internal_server_error', 'An internal server error occurred.')
+    return _json_error('internal_server_error', 'An internal server error occurred.', status=500)
 
 
 # ============================================================================

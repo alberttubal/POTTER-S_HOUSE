@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from core.pagination import StandardResultsSetPagination
-from core.permissions import IsAdminUser
+from core.permissions import IsAdminUser, RBACPermission
 from .models import Package
 from .serializers import PackageSerializer
 
@@ -42,5 +42,6 @@ class PackageDetailPublic(generics.RetrieveAPIView):
 
 class PackageAdminViewSet(viewsets.ModelViewSet):
     serializer_class = PackageSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, RBACPermission]
+    permission_map = {"GET": "packages.view_package", "POST": "packages.add_package", "PUT": "packages.change_package", "PATCH": "packages.change_package", "DELETE": "packages.delete_package"}
     queryset = Package.objects.all()

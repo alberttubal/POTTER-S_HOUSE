@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     "corsheaders.middleware.CorsMiddleware",  
     "core.middleware.RequestIDMiddleware",
+    "core.middleware.RequireJSONContentTypeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -265,6 +266,7 @@ SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development' if DEBUG else
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.0'))
 SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '0.0'))
 SENTRY_RELEASE = os.getenv('SENTRY_RELEASE', '')
+ENABLE_METRICS = os.getenv('ENABLE_METRICS', 'False') == 'True'
 
 if SENTRY_DSN:
     try:
@@ -312,6 +314,10 @@ CELERY_BEAT_SCHEDULE = {
     },  
     'dispatch-email-outbox': {  
         'task': 'email_outbox.tasks.dispatch_outbox',  
+        'schedule': 60.0,  
+    },  
+    'update-db-replication-lag': {  
+        'task': 'core.tasks.update_replication_lag',  
         'schedule': 60.0,  
     },  
 }  

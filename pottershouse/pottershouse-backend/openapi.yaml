@@ -1,0 +1,890 @@
+openapi: 3.0.3
+info:
+  title: Potters House API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorWrapper:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    nullable: true
+                  message:
+                    type: string
+            conflictingBookings:
+              type: array
+              items: {}
+            suggested_alternatives:
+              type: array
+              items: {}
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        event_type:
+          type: string
+        event_date_start:
+          type: string
+          format: date-time
+        event_date_end:
+          type: string
+          format: date-time
+        event_all_day:
+          type: boolean
+        guests:
+          type: integer
+        package_id:
+          type: string
+          format: uuid
+          nullable: true
+        dietary_needs:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        status:
+          type: string
+        workflow_status:
+          type: string
+        deposit_paid:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Package:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        active:
+          type: boolean
+    Upload:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        key:
+          type: string
+        size:
+          type: integer
+        alt_text:
+          type: string
+          nullable: true
+        published:
+          type: boolean
+    Testimonial:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_name:
+          type: string
+        content:
+          type: string
+        published:
+          type: boolean
+    FAQ:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+        answer:
+          type: string
+        published:
+          type: boolean
+    UploadUrlsResponse:
+      type: object
+      properties:
+        urls:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              key:
+                type: string
+              size:
+                type: integer
+              alt_text:
+                type: string
+                nullable: true
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /admin/login:
+    post:
+      summary: Admin login
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/refresh:
+    post:
+      summary: Admin refresh
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/password/forgot:
+    post:
+      summary: Admin password forgot
+      responses:
+        '200':
+          description: OK
+  /admin/password/reset:
+    post:
+      summary: Admin password reset
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /packages:
+    get:
+      summary: List packages
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+  /packages/{id}:
+    get:
+      summary: Get package
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/packages:
+    get: 
+      summary: List packages (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+          content: 
+            application/json: 
+              schema: 
+                type: array 
+                items: 
+                  $ref: '#/components/schemas/Package' 
+        '401': 
+          description: Unauthorized
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    post:
+      summary: Create package
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/packages/{id}:
+    get: 
+      summary: Get package (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/Package' 
+        '401': 
+          description: Unauthorized
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put:
+      summary: Update package
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+    delete:
+      summary: Delete package
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+  /bookings:
+    post:
+      summary: Create booking
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+
+
+  /admin/bookings: 
+    get: 
+      summary: List bookings (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/bookings/{id}: 
+    get: 
+      summary: Get booking (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/Booking'
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put: 
+      summary: Update booking (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '409': 
+          description: Conflict 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/bookings.csv: 
+    get: 
+      summary: Export bookings CSV (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/uploads: 
+    post: 
+      summary: Upload files (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '201': 
+          description: Created 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '413': 
+          description: Payload Too Large 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/uploads/list: 
+    get: 
+      summary: List uploads (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/uploads/{id}: 
+    get: 
+      summary: Get upload (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put: 
+      summary: Update upload (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    patch: 
+      summary: Update upload (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /gallery: 
+    get: 
+      summary: List gallery 
+      responses: 
+        '200': 
+          description: OK 
+  /testimonials: 
+    get: 
+      summary: List testimonials 
+      responses: 
+        '200': 
+          description: OK
+  /admin/testimonials: 
+    get: 
+      summary: List testimonials (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    post: 
+      summary: Create testimonial (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '201': 
+          description: Created 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/testimonials/{id}: 
+    get: 
+      summary: Get testimonial (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put: 
+      summary: Update testimonial (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    patch: 
+      summary: Update testimonial (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    delete: 
+      summary: Delete testimonial (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '204': 
+          description: No Content 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /faqs: 
+    get: 
+      summary: List faqs 
+      responses: 
+        '200': 
+          description: OK
+  /admin/faqs: 
+    get: 
+      summary: List faqs (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    post: 
+      summary: Create faq (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '201': 
+          description: Created 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/faqs/{id}: 
+    get: 
+      summary: Get faq (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put: 
+      summary: Update faq (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    patch: 
+      summary: Update faq (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    delete: 
+      summary: Delete faq (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '204': 
+          description: No Content 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/settings: 
+    get: 
+      summary: List settings (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    post: 
+      summary: Create setting (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '201': 
+          description: Created 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+  /admin/settings/{id}: 
+    get: 
+      summary: Get setting (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '404': 
+          description: Not Found 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
+    put: 
+      summary: Update setting (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK 
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    patch: 
+      summary: Update setting (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '200': 
+          description: OK
+        '400': 
+          description: Bad Request 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper' 
+    delete: 
+      summary: Delete setting (admin) 
+      security: 
+        - BearerAuth: [] 
+      responses: 
+        '204': 
+          description: No Content 
+        '401': 
+          description: Unauthorized 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorWrapper'
