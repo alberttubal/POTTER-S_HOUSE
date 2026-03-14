@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.conf import settings
 import sentry_sdk
 
-from core.metrics import HTTP_5XX_TOTAL
+from core.metrics import inc_http_5xx
 
 
 class RequestIDMiddleware(MiddlewareMixin):
@@ -56,7 +56,7 @@ class CatchAllExceptionMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if response.status_code >= 500:
             try:
-                HTTP_5XX_TOTAL.labels(path=request.path).inc()
+                inc_http_5xx(request.path)
             except Exception:
                 pass
 

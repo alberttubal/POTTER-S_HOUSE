@@ -7,7 +7,7 @@ from django.utils import timezone
 import sentry_sdk
 
 from core.alerts import send_pagerduty_event
-from core.metrics import observe_outbox_latency
+from core.metrics import observe_outbox_latency, set_outbox_backlog
 
 from .models import EmailOutbox, MAX_RETRY_ATTEMPTS, ALERT_AFTER_ATTEMPTS
 
@@ -75,6 +75,13 @@ def _send_message(message):
 
 @shared_task
 def process_email_outbox(limit=50):
+    try:
+        set_outbox_backlog(
+            EmailOutbox.objects.filter(status__in=['queued', 'failed']).count()
+        )
+    except Exception:
+        pass
+
     with transaction.atomic():
         candidates = list(
             EmailOutbox.objects.select_for_update(skip_locked=True)
@@ -94,6 +101,13 @@ def process_email_outbox(limit=50):
         if message.attempts >= MAX_RETRY_ATTEMPTS and message.status != 'processing':
             continue
         _send_message(message)
+
+    try:
+        set_outbox_backlog(
+            EmailOutbox.objects.filter(status__in=['queued', 'failed']).count()
+        )
+    except Exception:
+        pass
 
 
 @shared_task

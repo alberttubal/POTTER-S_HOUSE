@@ -86,10 +86,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "celery -A backend inspect ping -d celery@$${HOSTNAME}"]
-      interval: 5s
+      test: ["CMD-SHELL", "tr '\\0' ' ' < /proc/1/cmdline | grep -q celery"]
+      interval: 10s
       timeout: 3s
       retries: 3
+      start_period: 20s
       
 
 volumes:

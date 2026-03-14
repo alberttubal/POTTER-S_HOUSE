@@ -87,6 +87,19 @@ python manage.py runserver
 - `SENTRY_TRACES_SAMPLE_RATE` 
 - `SENTRY_PROFILES_SAMPLE_RATE` 
 - `SENTRY_RELEASE`
+
+### Datadog (Optional Metrics)
+- `DATADOG_ENABLED` (`True`/`False`)
+- `DATADOG_HOST` (DogStatsD host, default `localhost`)
+- `DATADOG_PORT` (DogStatsD port, default `8125`)
+- `DATADOG_NAMESPACE` (default `pottershouse`)
+- `DATADOG_SERVICE` (default `pottershouse-backend`)
+- `DATADOG_ENV` (e.g. `development`, `staging`, `production`)
+
+### Secrets Manager (Optional, AWS)
+- `AWS_SECRETS_MANAGER_SECRET_ID` (JSON secret payload)
+- `AWS_SECRETS_MANAGER_REQUIRED` (`True` to fail fast if secret fetch fails)
+- `AWS_REGION` or `AWS_DEFAULT_REGION`
  
 ## Migrations 
 - Apply migrations: 
@@ -121,6 +134,10 @@ pytest --cov=. --cov-report=term-missing
 ## Backup and Restore 
 - Backup script: `ops/backup.sh` 
 - Restore guide: `ops/restore.md`
+
+## Monitoring and Alerts
+- Prometheus alert rules: `ops/monitoring/prometheus-alerts.yml`
+- Metrics exported via `django-prometheus` and custom app metrics
  
 ## Health Check 
 - `GET /api/v1/health` returns `{'status':'ok','timestamp':'<UTC ISO>'}` 
@@ -166,3 +183,14 @@ pytest --cov=. --cov-report=term-missing
  
 ## CI 
 - GitHub Actions workflow: .github/workflows/ci.yml
+
+## CI/CD (Staging & Production)
+- Staging workflow: `.github/workflows/deploy-staging.yml`
+- Production workflow: `.github/workflows/deploy-prod.yml`
+- Required secrets (for container registry + deploy hook):
+  - `REGISTRY_URL`
+  - `IMAGE_NAME`
+  - `REGISTRY_USERNAME`
+  - `REGISTRY_PASSWORD`
+  - `STAGING_DEPLOY_WEBHOOK` (optional)
+  - `PRODUCTION_DEPLOY_WEBHOOK` (optional)

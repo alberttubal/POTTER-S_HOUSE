@@ -817,6 +817,12 @@ paths:
   /bookings:
     post:
       summary: Create booking
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -826,6 +832,11 @@ paths:
       responses:
         '201':
           description: Created
+          headers:
+            Location:
+              description: URL of the created booking resource
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -844,6 +855,17 @@ paths:
                 $ref: '#/components/schemas/ErrorWrapper'
         '429':
           description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '500':
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -1146,6 +1168,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorWrapper'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
     put:
       summary: Update upload (admin)
       security:
@@ -1175,6 +1203,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorWrapper'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
     patch:
       summary: Update upload (admin)
       security:
@@ -1200,6 +1234,12 @@ paths:
                 $ref: '#/components/schemas/ErrorWrapper'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorWrapper'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
