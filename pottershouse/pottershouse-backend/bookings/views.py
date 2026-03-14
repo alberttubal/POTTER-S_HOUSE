@@ -22,7 +22,12 @@ from .serializers import BookingSerializer, BookingAdminSerializer
 
 
 def _store_idempotency_response(idem_key, request_hash, response, extra_headers=None):
-    headers = extra_headers or {}
+    headers = {}
+    for header in ("Location", "Retry-After"):
+        if response.has_header(header):
+            headers[header] = response[header]
+    if extra_headers:
+        headers.update(extra_headers)
     IdempotencyKey.objects.create(
         key=idem_key,
         request_hash=request_hash,
@@ -68,14 +73,6 @@ class BookingCreatePublic(generics.CreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [AllowAny]
 
-    def dispatch(self, request, *args, **kwargs):
-        limiter = rate_limit(
-            "bookings_create",
-            limit=getattr(settings, "BOOKINGS_RATE_LIMIT", 60),
-            window_seconds=getattr(settings, "BOOKINGS_RATE_WINDOW", 3600),
-        )
-        return limiter(super().dispatch)(request, *args, **kwargs)
-    
 
     def create(self, request, *args, **kwargs):
         idem_key = request.headers.get("Idempotency-Key")
@@ -113,6 +110,16 @@ class BookingCreatePublic(generics.CreateAPIView):
                         for header, value in existing.response_headers.items():
                             response[header] = value
                 return response
+
+            limiter = rate_limit(
+                "bookings_create",
+                limit=getattr(settings, "BOOKINGS_RATE_LIMIT", 60),
+                window_seconds=getattr(settings, "BOOKINGS_RATE_WINDOW", 3600),
+            )
+            rate_response = limiter(lambda *a, **k: None)(self, request, *args, **kwargs)
+            if rate_response is not None:
+                _store_idempotency_response(idem_key, payload_hash, rate_response)
+                return rate_response
 
             serializer = self.get_serializer(data=request.data)
             if not serializer.is_valid():

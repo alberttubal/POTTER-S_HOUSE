@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/packages
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "name": "string",
+        "price": 6437.443108288657,
+        "description": "string",
+        "active": false
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "244ae84b-fcac-d676-5dd4-386d873fd7d9",
+        "name": "string",
+        "description": "string",
+        "price": 2655.1385728757946,
+        "active": true,
+        "created_at": "2010-02-02T10:58:04.033Z",
+        "updated_at": "1951-06-25T23:07:02.798Z"
+      }
+order: 1000

@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/refresh
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "refresh": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "token": "string",
+        "expires_in": 7861,
+        "admin": {
+          "id": "bf122e4f-0ab5-7ba5-4694-b8355e28c4a2",
+          "email": "string",
+          "full_name": "string",
+          "is_staff": true,
+          "is_active": false,
+          "created_at": "1986-10-12T04:31:56.801Z",
+          "updated_at": "2010-02-06T21:20:08.518Z"
+        }
+      }
+order: 1000

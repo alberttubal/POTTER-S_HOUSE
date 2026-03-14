@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/bookings/:id
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "c0963fa2-71ed-f999-021e-4d80f810426f",
+        "customer_name": "string",
+        "phone": "string",
+        "email": "string",
+        "event_type": "string",
+        "event_date_start": "1986-08-13T00:51:04.548Z",
+        "event_date_end": "2015-06-02T09:14:03.746Z",
+        "event_all_day": true,
+        "guests": 7520,
+        "package_id": "76acf25b-fb4b-ac55-d94f-e195d045f934",
+        "dietary_needs": "string",
+        "notes": "string",
+        "status": "string",
+        "workflow_status": "string",
+        "deposit_paid": true,
+        "created_at": "2004-11-02T13:39:15.961Z",
+        "updated_at": "1971-11-23T03:20:34.715Z"
+      }
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: http://{{baseUrl}}/testimonials
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+examples: ./.resources/List testimonials.resources/examples
+order: 1000

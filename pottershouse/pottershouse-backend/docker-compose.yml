@@ -3,18 +3,18 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      DB_USER: potter
-      DB_PASSWORD: potterpass
-      DB_NAME: potter_dev
+      POSTGRES_USER: potter
+      POSTGRES_PASSWORD: potterpass
+      POSTGRES_DB: potter_dev
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U potter"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   redis:
     image: redis:7
@@ -24,9 +24,9 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   minio:
     image: minio/minio:latest
@@ -41,9 +41,9 @@ services:
       - minio_data:/data
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/minio/health/live || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   web:
     build:
@@ -66,9 +66,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   celery:
     build:
@@ -85,6 +85,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A backend inspect ping -d celery@$${HOSTNAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      
 
 volumes:
   postgres_data:

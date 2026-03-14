@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/settings
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "0413a87e-a2ba-d548-7f3a-48f83fcd0740",
+          "key": "string",
+          "value": {},
+          "created_at": "2004-04-18T02:28:33.130Z",
+          "updated_at": "1991-12-25T00:52:33.872Z"
+        },
+        {
+          "id": "2825fca6-7016-8a4e-838d-971f266fc642",
+          "key": "string",
+          "value": {},
+          "created_at": "2013-10-19T16:00:42.850Z",
+          "updated_at": "1986-02-04T19:37:18.520Z"
+        }
+      ]
+order: 1000

@@ -1,0 +1,30 @@
+$kind: http-request
+url: http://{{baseUrl}}/packages?active=false&page=5718&pageSize=5718
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  active: "false"
+  page: "5718"
+  pageSize: "5718"
+body:
+  type: text
+  content: ""
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      
+      pm.test("Response is JSON", function () {
+          pm.response.to.have.header("Content-Type", /application\/json/);
+      });
+      
+      pm.test("Response has results array", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData).to.be.an("array").or.to.have.property("results");
+      });
+examples: ./.resources/List packages.resources/examples
+order: 1000

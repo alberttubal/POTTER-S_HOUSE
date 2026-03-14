@@ -1,0 +1,26 @@
+$kind: http-request
+url: http://{{baseUrl}}/health
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+      
+      pm.test("Response is JSON", function () {
+          pm.response.to.have.header("Content-Type", /application\/json/);
+      });
+      
+      pm.test("Response has expected structure", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData).to.be.an("object");
+      });
+examples: ./.resources/Health check.resources/examples
+order: 1000

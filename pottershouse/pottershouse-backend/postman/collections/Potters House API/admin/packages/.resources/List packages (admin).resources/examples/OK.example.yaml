@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/packages
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "31945fb5-dab6-28c2-5823-5cc5f87cb28b",
+          "name": "string",
+          "description": "string",
+          "price": 4043.5575078535944,
+          "active": false,
+          "created_at": "1974-08-22T22:51:13.006Z",
+          "updated_at": "1977-08-03T19:26:08.691Z"
+        },
+        {
+          "id": "9bbd2365-1530-397b-e41c-2e11963b6930",
+          "name": "string",
+          "description": "string",
+          "price": 5943.533432815964,
+          "active": false,
+          "created_at": "1979-06-15T18:13:44.131Z",
+          "updated_at": "1947-09-28T11:32:04.257Z"
+        }
+      ]
+order: 1000

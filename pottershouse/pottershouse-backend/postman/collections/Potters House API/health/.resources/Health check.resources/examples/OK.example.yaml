@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/health
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "string",
+        "timestamp": "1965-06-09T11:02:43.419Z"
+      }
+order: 1000

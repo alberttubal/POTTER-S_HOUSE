@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/login
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "STUPfLsG-FVY@DxFKBouZoRwyLQZJSaXpcSLKybY.xj",
+        "password": "string"
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "string",
+          "message": "string",
+          "details": [
+            {
+              "field": "string",
+              "message": "string"
+            },
+            {
+              "field": "string",
+              "message": "string"
+            }
+          ],
+          "conflictingBookings": [
+            "",
+            ""
+          ],
+          "suggested_alternatives": [
+            "",
+            ""
+          ]
+        }
+      }
+order: 2000

@@ -1,0 +1,19 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/uploads
+method: POST
+headers:
+  Content-Type: multipart/form-data
+  Accept: application/json
+body:
+  type: formdata
+  content:
+    - type: text
+      key: files
+      value: string,string
+      description: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Upload files (admin).resources/examples
+order: 1000

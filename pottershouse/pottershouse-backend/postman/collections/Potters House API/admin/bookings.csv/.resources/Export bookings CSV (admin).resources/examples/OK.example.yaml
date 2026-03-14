@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/bookings.csv
+  method: GET
+  headers:
+    - key: Accept
+      value: text/csv
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: text/csv
+  body:
+    type: text
+    content: string
+order: 1000

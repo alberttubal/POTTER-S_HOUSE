@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/faqs/:id
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+  body:
+    type: json
+    content: |-
+      {
+        "question": "string",
+        "answer": "string",
+        "published": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "50aca46e-d7fc-b97d-79e1-5a5d9b9d3f51",
+        "question": "string",
+        "answer": "string",
+        "published": true,
+        "created_at": "1970-11-17T14:48:17.640Z",
+        "updated_at": "2005-01-07T17:42:54.123Z"
+      }
+order: 1000

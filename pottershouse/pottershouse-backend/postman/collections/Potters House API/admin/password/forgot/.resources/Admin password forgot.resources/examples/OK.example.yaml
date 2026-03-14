@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/password/forgot
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "EzeLwOFy@y.aw"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "string"
+      }
+order: 1000

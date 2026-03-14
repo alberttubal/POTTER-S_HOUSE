@@ -234,6 +234,30 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS = ["Retry-After", "Location"]
 
 # ============================================================================
+# 11. RATE LIMITING & CACHE
+# ============================================================================
+BOOKINGS_RATE_LIMIT = int(os.getenv("BOOKINGS_RATE_LIMIT", "60"))
+BOOKINGS_RATE_WINDOW = int(os.getenv("BOOKINGS_RATE_WINDOW", "3600"))
+RATE_LIMIT_FAIL_OPEN = os.getenv("RATE_LIMIT_FAIL_OPEN", "True") == "True"
+USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "False") == "True"
+
+if USE_REDIS_CACHE:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"redis://{os.getenv('REDIS_HOST','localhost')}:{os.getenv('REDIS_PORT','6379')}/{os.getenv('REDIS_DB','1')}",
+            "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "pottershouse-cache",
+        }
+    }
+
+# ============================================================================
 # 11. SECURITY HEADERS
 # ============================================================================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -297,8 +321,16 @@ REDIS_DB = os.getenv('REDIS_DB', '0')
 WHATSAPP_CONTACT_LINK = os.getenv('WHATSAPP_CONTACT_LINK', 'https://wa.me/639171234567?text=Hello')  
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@pottershouse.com')  
  
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{int(REDIS_DB) + 1}"
+#ENABLE OFFLINE MODE FOR CELERY (FOR LOCAL DEVELOPMENT WITHOUT REDIS)
+
+if os.getenv('USE_REDIS_CACHE') == "True":
+    CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+    CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+else:
+    CELERY_BROKER_URL = 'memory://'
+    CELERY_RESULT_BACKEND = 'cache+memory://'
+
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

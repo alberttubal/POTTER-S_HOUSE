@@ -1,0 +1,21 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/bookings?q=string&status=string&from=string&to=string&page=5718&pageSize=5718
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  q: string
+  status: string
+  from: string
+  to: string
+  page: "5718"
+  pageSize: "5718"
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/List bookings (admin).resources/examples
+order: 1000

@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/packages/:id
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "string",
+          "message": "string",
+          "details": [
+            {
+              "field": "string",
+              "message": "string"
+            },
+            {
+              "field": "string",
+              "message": "string"
+            }
+          ],
+          "conflictingBookings": [
+            "",
+            ""
+          ],
+          "suggested_alternatives": [
+            "",
+            ""
+          ]
+        }
+      }
+order: 2000

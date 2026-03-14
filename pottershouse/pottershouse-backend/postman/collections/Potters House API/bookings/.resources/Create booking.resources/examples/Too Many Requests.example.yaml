@@ -1,0 +1,57 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/bookings
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "customer_name": "string",
+        "phone": "string",
+        "email": "DsyKMOFiB-gL@uNlukELl.gtqg",
+        "event_type": "string",
+        "event_date_start": "1951-05-07T02:30:34.294Z",
+        "event_date_end": "2011-12-08T02:47:00.040Z",
+        "event_all_day": true,
+        "guests": 7156,
+        "honeypot": "string",
+        "package_id": "b46a04d8-0528-0641-eeba-90bf303475ac",
+        "dietary_needs": "string",
+        "notes": "string"
+      }
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "string",
+          "message": "string",
+          "details": [
+            {
+              "field": "string",
+              "message": "string"
+            },
+            {
+              "field": "string",
+              "message": "string"
+            }
+          ],
+          "conflictingBookings": [
+            "",
+            ""
+          ],
+          "suggested_alternatives": [
+            "",
+            ""
+          ]
+        }
+      }
+order: 4000

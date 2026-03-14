@@ -1,0 +1,21 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/uploads/:id
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+body:
+  type: json
+  content: |-
+    {
+      "alt_text": "string",
+      "published": false
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Update upload (admin).resources/examples
+order: 2000

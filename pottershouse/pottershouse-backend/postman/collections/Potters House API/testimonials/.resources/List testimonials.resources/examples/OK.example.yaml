@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/testimonials
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "199b254c-123f-1234-57ef-c38a36b733ca",
+          "customer_name": "string",
+          "content": "string",
+          "published": true,
+          "created_at": "2004-09-21T06:57:21.147Z",
+          "updated_at": "2002-12-03T22:04:02.095Z"
+        },
+        {
+          "id": "689762f7-002e-5759-4dcc-1a213f10fc88",
+          "customer_name": "string",
+          "content": "string",
+          "published": true,
+          "created_at": "1985-09-01T17:15:36.858Z",
+          "updated_at": "2014-01-25T08:15:25.028Z"
+        }
+      ]
+order: 1000

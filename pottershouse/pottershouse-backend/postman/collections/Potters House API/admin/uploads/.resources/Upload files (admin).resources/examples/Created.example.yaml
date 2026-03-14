@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/uploads
+  method: POST
+  headers:
+    - key: Content-Type
+      value: multipart/form-data
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: files
+        value: string,string
+        description: ""
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "urls": [
+          {
+            "url": "string",
+            "key": "string",
+            "size": 8033,
+            "alt_text": "string"
+          },
+          {
+            "url": "string",
+            "key": "string",
+            "size": 9118,
+            "alt_text": "string"
+          }
+        ]
+      }
+order: 1000

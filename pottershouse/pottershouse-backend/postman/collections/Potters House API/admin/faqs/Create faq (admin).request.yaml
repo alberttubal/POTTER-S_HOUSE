@@ -1,0 +1,20 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/faqs
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "question": "string",
+      "answer": "string",
+      "published": true
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Create faq (admin).resources/examples
+order: 2000

@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/faqs
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "ec8814bd-a2d6-8177-6e3d-77036585a2a2",
+          "question": "string",
+          "answer": "string",
+          "published": true,
+          "created_at": "1988-03-23T01:40:21.034Z",
+          "updated_at": "1972-04-03T20:41:13.540Z"
+        },
+        {
+          "id": "c1ef12b1-4f87-80a2-23b6-a075589db195",
+          "question": "string",
+          "answer": "string",
+          "published": true,
+          "created_at": "1990-08-29T01:43:56.402Z",
+          "updated_at": "1990-09-23T22:09:07.306Z"
+        }
+      ]
+order: 1000

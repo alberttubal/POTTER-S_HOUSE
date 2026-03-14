@@ -1,0 +1,19 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/settings
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "key": "string",
+      "value": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Create setting (admin).resources/examples
+order: 2000

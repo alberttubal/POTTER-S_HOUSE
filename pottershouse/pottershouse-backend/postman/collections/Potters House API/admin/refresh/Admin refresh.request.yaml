@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/refresh
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refresh": "string"
+    }
+examples: ./.resources/Admin refresh.resources/examples
+order: 1000

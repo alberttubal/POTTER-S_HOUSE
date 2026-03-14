@@ -1,0 +1,24 @@
+$kind: http-request
+name: Update package
+url: http://{{baseUrl}}/admin/packages/:id
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+body:
+  type: json
+  content: |-
+    {
+      "name": "string",
+      "price": 6437.443108288657,
+      "description": "string",
+      "active": false
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Update package 1.resources/examples
+order: 3000

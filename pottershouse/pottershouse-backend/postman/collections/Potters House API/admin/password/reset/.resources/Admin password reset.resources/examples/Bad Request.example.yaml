@@ -1,0 +1,48 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/password/reset
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "uid": "string",
+        "token": "string",
+        "new_password": "string"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "string",
+          "message": "string",
+          "details": [
+            {
+              "field": "string",
+              "message": "string"
+            },
+            {
+              "field": "string",
+              "message": "string"
+            }
+          ],
+          "conflictingBookings": [
+            "",
+            ""
+          ],
+          "suggested_alternatives": [
+            "",
+            ""
+          ]
+        }
+      }
+order: 2000

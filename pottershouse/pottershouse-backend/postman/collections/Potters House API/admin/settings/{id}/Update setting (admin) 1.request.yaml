@@ -1,0 +1,22 @@
+$kind: http-request
+name: Update setting (admin)
+url: http://{{baseUrl}}/admin/settings/:id
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+body:
+  type: json
+  content: |-
+    {
+      "key": "string",
+      "value": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Update setting (admin) 1.resources/examples
+order: 3000

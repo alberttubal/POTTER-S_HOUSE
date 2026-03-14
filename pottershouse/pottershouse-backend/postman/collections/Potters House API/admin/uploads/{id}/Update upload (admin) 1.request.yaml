@@ -1,0 +1,22 @@
+$kind: http-request
+name: Update upload (admin)
+url: http://{{baseUrl}}/admin/uploads/:id
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+body:
+  type: json
+  content: |-
+    {
+      "alt_text": "string",
+      "published": false
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Update upload (admin) 1.resources/examples
+order: 3000

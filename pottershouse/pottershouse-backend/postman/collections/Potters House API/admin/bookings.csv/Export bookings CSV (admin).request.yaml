@@ -1,0 +1,14 @@
+$kind: http-request
+url: http://{{baseUrl}}/admin/bookings.csv
+method: GET
+headers:
+  Accept: text/csv
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Export bookings CSV (admin).resources/examples
+order: 1000

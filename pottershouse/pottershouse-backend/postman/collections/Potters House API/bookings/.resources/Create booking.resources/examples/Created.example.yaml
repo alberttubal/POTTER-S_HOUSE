@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/bookings
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "customer_name": "string",
+        "phone": "string",
+        "email": "DsyKMOFiB-gL@uNlukELl.gtqg",
+        "event_type": "string",
+        "event_date_start": "1951-05-07T02:30:34.294Z",
+        "event_date_end": "2011-12-08T02:47:00.040Z",
+        "event_all_day": true,
+        "guests": 7156,
+        "honeypot": "string",
+        "package_id": "b46a04d8-0528-0641-eeba-90bf303475ac",
+        "dietary_needs": "string",
+        "notes": "string"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "c0963fa2-71ed-f999-021e-4d80f810426f",
+        "customer_name": "string",
+        "phone": "string",
+        "email": "string",
+        "event_type": "string",
+        "event_date_start": "1986-08-13T00:51:04.548Z",
+        "event_date_end": "2015-06-02T09:14:03.746Z",
+        "event_all_day": true,
+        "guests": 7520,
+        "package_id": "76acf25b-fb4b-ac55-d94f-e195d045f934",
+        "dietary_needs": "string",
+        "notes": "string",
+        "status": "string",
+        "workflow_status": "string",
+        "deposit_paid": true,
+        "created_at": "2004-11-02T13:39:15.961Z",
+        "updated_at": "1971-11-23T03:20:34.715Z"
+      }
+order: 1000

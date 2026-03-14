@@ -1,0 +1,66 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/bookings/:id
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07f9448b-fad5-1bfc-3304-4b4f1081d45f
+  body:
+    type: json
+    content: |-
+      {
+        "customer_name": "string",
+        "phone": "string",
+        "email": "uUMxq2S@EOfIiyg.ny",
+        "event_type": "string",
+        "event_date_start": "1952-06-01T09:29:27.673Z",
+        "event_date_end": "1991-07-08T18:02:00.862Z",
+        "event_all_day": true,
+        "guests": 1530,
+        "package_id": "e85417fd-2780-1d63-0c9f-cae0fc239a73",
+        "dietary_needs": "string",
+        "notes": "string",
+        "status": "string",
+        "workflow_status": "string",
+        "deposit_paid": false
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "string",
+          "message": "string",
+          "details": [
+            {
+              "field": "string",
+              "message": "string"
+            },
+            {
+              "field": "string",
+              "message": "string"
+            }
+          ],
+          "conflictingBookings": [
+            "",
+            ""
+          ],
+          "suggested_alternatives": [
+            "",
+            ""
+          ]
+        }
+      }
+order: 4000

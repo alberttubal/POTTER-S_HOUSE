@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/password/reset
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "uid": "string",
+        "token": "string",
+        "new_password": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "string"
+      }
+order: 1000

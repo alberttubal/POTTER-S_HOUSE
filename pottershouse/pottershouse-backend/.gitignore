@@ -56,7 +56,6 @@ db.sqlite3
 
 # Media
 media/
-uploads/
 
 # Env files
 .env

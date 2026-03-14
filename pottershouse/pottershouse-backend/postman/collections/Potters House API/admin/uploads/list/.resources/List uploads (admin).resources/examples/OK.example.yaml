@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: http://{{baseUrl}}/admin/uploads/list
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "38ef4b3e-f1d3-eda2-2ef3-47c4867a33f3",
+          "url": "string",
+          "key": "string",
+          "size": 8984,
+          "mime_type": "string",
+          "alt_text": "string",
+          "published": false,
+          "created_at": "1970-10-01T12:57:57.669Z",
+          "updated_at": "1992-04-15T04:25:55.291Z"
+        },
+        {
+          "id": "e9004961-81cd-69e9-d47b-56c0c7c7d232",
+          "url": "string",
+          "key": "string",
+          "size": 4905,
+          "mime_type": "string",
+          "alt_text": "string",
+          "published": false,
+          "created_at": "1997-01-19T11:00:04.307Z",
+          "updated_at": "2014-05-17T12:07:41.587Z"
+        }
+      ]
+order: 1000

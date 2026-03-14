@@ -1,0 +1,157 @@
+{
+  "info": {
+    "name": "Pottershouse Backend",
+    "_postman_id": "8f3e6b0e-6a86-4a4f-9a1d-6b1d2b8bb111",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{ADMIN_TOKEN}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/health/"
+      }
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"admin@example.com\",\"password\":\"AdminPass123!\"}"
+        },
+        "url": "{{BASE_URL}}/api/v1/admin/login/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.token) {",
+              "  pm.environment.set('ADMIN_TOKEN', json.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "idem-{{$randomUUID}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"customer_name\":\"Test User\",\"phone\":\"09170000000\",\"email\":\"test@example.com\",\"event_type\":\"wedding\",\"event_date_start\":\"2026-04-20T10:00:00Z\",\"event_date_end\":\"2026-04-20T12:00:00Z\",\"event_all_day\":false,\"guests\":50,\"honeypot\":\"\"}"
+        },
+        "url": "{{BASE_URL}}/api/v1/bookings/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.id) {",
+              "  pm.environment.set('BOOKING_ID', json.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Bookings List",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/admin/bookings/"
+      }
+    },
+    {
+      "name": "Admin Booking Detail",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/admin/bookings/{{BOOKING_ID}}/"
+      }
+    },
+    {
+      "name": "Admin Bookings CSV",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/admin/bookings.csv"
+      }
+    },
+    {
+      "name": "Packages (Public List)",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/packages/"
+      }
+    },
+    {
+      "name": "Packages (Admin Create)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"Basic\",\"description\":\"Example\",\"price\":1000,\"active\":true}" },
+        "url": "{{BASE_URL}}/api/v1/admin/packages/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.id) {",
+              "  pm.environment.set('PACKAGE_ID', json.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads (Admin List)",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/admin/uploads/list/"
+      }
+    },
+    {
+      "name": "Testimonials (Public List)",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/testimonials/"
+      }
+    },
+    {
+      "name": "FAQs (Public List)",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/faqs/"
+      }
+    },
+    {
+      "name": "Settings (Admin List)",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/api/v1/admin/settings/"
+      }
+    }
+  ]
+}
