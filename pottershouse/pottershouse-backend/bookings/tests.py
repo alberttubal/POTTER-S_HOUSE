@@ -107,6 +107,8 @@ class BookingConflictResponseTests(APITestCase):
         self.assertIn('suggested_alternatives', error) 
         self.assertIsInstance(error['conflictingBookings'], list) 
         self.assertIsInstance(error['suggested_alternatives'], list)
+        self.assertGreater(len(error['conflictingBookings']), 0)
+        self.assertGreater(len(error['suggested_alternatives']), 0)
  
 class BookingCSVExportTests(APITestCase): 
     def setUp(self): 

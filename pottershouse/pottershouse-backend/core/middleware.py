@@ -38,8 +38,11 @@ class RequireJSONContentTypeMiddleware(MiddlewareMixin):
 
 
 class CatchAllExceptionMiddleware(MiddlewareMixin):
+    def _is_api_request(self, request):
+        return request.path.startswith("/api/")
+
     def process_exception(self, request, exception):
-        if settings.DEBUG:
+        if not self._is_api_request(request):
             return None
         sentry_sdk.capture_exception(exception)
         return JsonResponse(
@@ -60,7 +63,11 @@ class CatchAllExceptionMiddleware(MiddlewareMixin):
             except Exception:
                 pass
 
-        if response.status_code == 404 and response.get("Content-Type", "").startswith("text/html"):
+        if (
+            response.status_code == 404
+            and response.get("Content-Type", "").startswith("text/html")
+            and self._is_api_request(request)
+        ):
             return JsonResponse(
                 {
                     "error": {

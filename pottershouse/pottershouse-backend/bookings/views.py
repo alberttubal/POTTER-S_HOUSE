@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.db import connection, transaction, IntegrityError, DatabaseError
@@ -69,6 +69,86 @@ def _is_exclusion_violation(exc):
     return False
 
 
+def _fetch_conflicting_booking_ids(start, end):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT booking_id
+            FROM bookings_confirmed_ranges
+            WHERE event_range && tstzrange(%s, %s, '[)')
+            """,
+            [start, end],
+        )
+        return [row[0] for row in cursor.fetchall()]
+
+
+def _serialize_conflicting_bookings(start, end):
+    booking_ids = _fetch_conflicting_booking_ids(start, end)
+    if not booking_ids:
+        return []
+    conflicts = (
+        Booking.objects.filter(id__in=booking_ids)
+        .order_by("event_date_start")
+    )
+    return [
+        {
+            "id": str(booking.id),
+            "event_date_start": booking.event_date_start.isoformat(),
+            "event_date_end": booking.event_date_end.isoformat(),
+            "event_all_day": booking.event_all_day,
+        }
+        for booking in conflicts
+    ]
+
+
+def _next_conflict_end(start, end):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT MAX(upper(event_range))
+            FROM bookings_confirmed_ranges
+            WHERE event_range && tstzrange(%s, %s, '[)')
+            """,
+            [start, end],
+        )
+        row = cursor.fetchone()
+    return row[0] if row and row[0] else None
+
+
+def _build_suggested_alternatives(start, end, event_all_day, limit=3):
+    duration = end - start
+    if duration.total_seconds() < 0:
+        return []
+
+    suggestions = []
+    candidate_start = end
+    cutoff = end + timedelta(days=30)
+    attempts = 0
+
+    while len(suggestions) < limit and attempts < 20 and candidate_start <= cutoff:
+        candidate_end = candidate_start + duration
+        conflict_end = _next_conflict_end(candidate_start, candidate_end)
+        if conflict_end:
+            if conflict_end <= candidate_start:
+                candidate_start = candidate_start + duration
+            else:
+                candidate_start = conflict_end
+            attempts += 1
+            continue
+
+        suggestions.append(
+            {
+                "event_date_start": candidate_start.isoformat(),
+                "event_date_end": candidate_end.isoformat(),
+                "event_all_day": bool(event_all_day),
+            }
+        )
+        candidate_start = candidate_end
+        attempts += 1
+
+    return suggestions
+
+
 class BookingCreatePublic(generics.CreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [AllowAny]
@@ -132,6 +212,10 @@ class BookingCreatePublic(generics.CreateAPIView):
                 _store_idempotency_response(idem_key, payload_hash, response)
                 return response
 
+            event_start = serializer.validated_data.get("event_date_start")
+            event_end = serializer.validated_data.get("event_date_end")
+            event_all_day = serializer.validated_data.get("event_all_day", False)
+
             try:
                 # Save booking inside a nested transaction so we can still record idempotency on conflict.
                 with transaction.atomic():
@@ -162,13 +246,19 @@ class BookingCreatePublic(generics.CreateAPIView):
             except (IntegrityError, DatabaseError) as exc:
                 if not _is_exclusion_violation(exc):
                     raise
+                conflicting = _serialize_conflicting_bookings(event_start, event_end)
+                suggestions = _build_suggested_alternatives(
+                    event_start,
+                    event_end,
+                    event_all_day,
+                )
                 response = error_response(
                     code="booking_conflict",
                     message="Requested time conflicts with an existing booking.",
                     details=[],
                     status=409,
-                    conflictingBookings=[],
-                    suggested_alternatives=[],
+                    conflictingBookings=conflicting,
+                    suggested_alternatives=suggestions,
                 )
                 _store_idempotency_response(idem_key, payload_hash, response)
                 return response
@@ -280,6 +370,7 @@ class BookingAdminDetail(generics.RetrieveUpdateAPIView):
         new_status = serializer.validated_data.get("status", instance.status)
         new_start = serializer.validated_data.get("event_date_start", instance.event_date_start)
         new_end = serializer.validated_data.get("event_date_end", instance.event_date_end)
+        new_all_day = serializer.validated_data.get("event_all_day", instance.event_all_day)
         range_changed = new_start != instance.event_date_start or new_end != instance.event_date_end
 
         try:
@@ -300,13 +391,19 @@ class BookingAdminDetail(generics.RetrieveUpdateAPIView):
         except (IntegrityError, DatabaseError) as exc:
             if not _is_exclusion_violation(exc):
                 raise
+            conflicting = _serialize_conflicting_bookings(new_start, new_end)
+            suggestions = _build_suggested_alternatives(
+                new_start,
+                new_end,
+                new_all_day,
+            )
             return error_response(
                 code="booking_conflict",
                 message="Requested time conflicts with an existing booking.",
                 details=[],
                 status=409,
-                conflictingBookings=[],
-                suggested_alternatives=[],
+                conflictingBookings=conflicting,
+                suggested_alternatives=suggestions,
             )
 
         return Response(BookingSerializer(booking).data, status=200)
