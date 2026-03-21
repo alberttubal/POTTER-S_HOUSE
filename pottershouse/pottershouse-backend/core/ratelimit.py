@@ -14,14 +14,15 @@ def rate_limit(key_prefix, limit, window_seconds):
         def _wrapped(*args, **kwargs):
             # Supports both function-based and method-based views.
             request = args[0] if len(args) == 1 else args[1]
-            forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
-            ip = (
-                forwarded.split(',')[0].strip()
-                if forwarded
-                else request.META.get('REMOTE_ADDR', 'unknown')
-            )
 
-            key = '{}:{}'.format(key_prefix, ip)
+            trusted_proxy = getattr(settings, "TRUST_X_FORWARDED_FOR", False)
+            forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+            if trusted_proxy and forwarded:
+                ip = forwarded.split(",")[0].strip()
+            else:
+                ip = request.META.get("REMOTE_ADDR", "unknown")
+
+            key = "{}:{}".format(key_prefix, ip)
             now = int(time.time())
 
             try:
@@ -35,12 +36,12 @@ def rate_limit(key_prefix, limit, window_seconds):
                         if count >= limit:
                             retry_after = window_seconds - (now - start)
                             response = error_response(
-                                code='rate_limited',
-                                message='Too many requests',
+                                code="rate_limited",
+                                message="Too many requests",
                                 details=[],
                                 status=429,
                             )
-                            response['Retry-After'] = str(retry_after)
+                            response["Retry-After"] = str(retry_after)
                             return response
                         cache.set(key, (count + 1, start), timeout=window_seconds)
                     else:

@@ -17,6 +17,7 @@ from core.secrets import load_aws_secrets_manager
 import dj_database_url
 from datetime import timedelta
 from celery.schedules import crontab
+from corsheaders.defaults import default_headers
 
 # Load environment variables
 load_dotenv()
@@ -191,10 +192,14 @@ REFRESH_COOKIE_SECURE = os.getenv(
     "True" if not DEBUG else "False"
 ) == "True"
 
+
 REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "Lax")
 REFRESH_COOKIE_PATH = os.getenv("REFRESH_COOKIE_PATH", "/api/v1/admin/refresh")
 REFRESH_COOKIE_MAX_AGE = int(os.getenv("REFRESH_COOKIE_MAX_AGE", "604800"))
-FRONTEND_PASSWORD_RESET_URL = os.getenv("FRONTEND_PASSWORD_RESET_URL", "https://pottershouse.example.com/admin/reset-password")
+FRONTEND_PASSWORD_RESET_URL = os.getenv(
+    "FRONTEND_PASSWORD_RESET_URL",
+    "http://localhost:5173/admin/reset-password" if DEBUG else "https://pottershouse.example.com/admin/reset-password",
+)
 PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "1800"))
 
 # ============================================================================
@@ -224,16 +229,21 @@ CORS_ALLOWED_ORIGINS = [
     "https://pottershouse.example.com",
 ]
 if DEBUG:
-    CORS_ALLOWED_ORIGINS += ["http://localhost:3000", "http://127.0.0.1:3000"]
+    CORS_ALLOWED_ORIGINS += [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
+CORS_ALLOW_HEADERS = list(default_headers) + [
     "idempotency-key",
-    "x-requested-with",
 ]
+
 CORS_EXPOSE_HEADERS = ["Retry-After", "Location"]
+
+TRUST_X_FORWARDED_FOR = os.getenv("TRUST_X_FORWARDED_FOR", "False").lower() == "true"
 
 # ============================================================================
 # 11. RATE LIMITING & CACHE

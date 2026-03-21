@@ -1,5 +1,6 @@
-import uuid 
-from rest_framework import generics 
+import logging
+import uuid
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from core.permissions import IsAdminUser, RBACPermission
 from rest_framework.parsers import MultiPartParser, FormParser 
@@ -8,55 +9,68 @@ from core.utils import error_response
 from .models import Upload 
 from .serializers import UploadSerializer, UploadRequestSerializer 
 from .services import validate_upload, upload_fileobj, build_public_url, generate_presigned_url
+
+logger = logging.getLogger(__name__)
  
 class UploadCreateAdmin(generics.GenericAPIView): 
     parser_classes = [MultiPartParser, FormParser] 
     permission_classes = [IsAdminUser, RBACPermission]
     permission_map = {"POST": "uploads.add_upload"}
 
-    def post(self, request, *args, **kwargs): 
-        files = request.FILES.getlist('files') 
-        if not files: 
-            return error_response( 
-                'validation_error', 
-                'Validation failed', 
-                details=[{'field': 'files', 'message': 'At least one file is required.'}], 
-                status=400, 
-            ) 
- 
-        for f in files: 
-            try: 
-                validate_upload(f.content_type, f.size) 
-            except ValueError as e: 
-                if str(e) == 'invalid_mime_type': 
-                    return error_response('invalid_file_type', 'Invalid file type', details=[], status=400) 
-                if str(e) == 'file_too_large': 
-                    return error_response('file_too_large', 'File exceeds max size', details=[], status=413) 
- 
-        urls = [] 
-        for f in files: 
-            key = f'{uuid.uuid4()}-{f.name}' 
+    def post(self, request, *args, **kwargs):
+        files = request.FILES.getlist('files')
+        if not files:
+            return error_response(
+                'validation_error',
+                'Validation failed',
+                details=[{'field': 'files', 'message': 'At least one file is required.'}],
+                status=400,
+            )
+
+        raw_alt_texts = request.data.getlist('alt_text')
+        normalized_alt_texts = [value.strip() for value in raw_alt_texts if isinstance(value, str)]
+        if len(normalized_alt_texts) == len(files):
+            alt_texts = [value or None for value in normalized_alt_texts]
+        elif len(normalized_alt_texts) == 1:
+            alt_texts = [normalized_alt_texts[0] or None] * len(files)
+        else:
+            alt_texts = [None] * len(files)
+
+        for f in files:
+            try:
+                validate_upload(f.content_type, f.size)
+            except ValueError as e:
+                if str(e) == 'invalid_mime_type':
+                    return error_response('invalid_file_type', 'Invalid file type', details=[], status=400)
+                if str(e) == 'file_too_large':
+                    return error_response('file_too_large', 'File exceeds max size', details=[], status=413)
+
+        urls = []
+        for index, f in enumerate(files):
+            key = f'{uuid.uuid4()}-{f.name}'
+            alt_text = alt_texts[index]
             try:
                 upload_fileobj(f, key, f.content_type)
             except Exception:
+                logger.exception("Upload failed for key=%s", key)
                 return error_response(
                         'upload_failed',
                         'Upload failed',
                         details=[],
                         status=500,
                         )
-            public_url = build_public_url(key) 
-            Upload.objects.create( 
-                key=key, 
-                url=public_url, 
-                size=f.size, 
-                mime_type=f.content_type, 
-                alt_text=None, 
-                published=False, 
-            ) 
-            urls.append({'url': public_url, 'key': key, 'size': f.size, 'alt_text': None, 'published': False}) 
- 
-        return Response({'urls': urls}, status=201) 
+            public_url = build_public_url(key)
+            Upload.objects.create(
+                key=key,
+                url=public_url,
+                size=f.size,
+                mime_type=f.content_type,
+                alt_text=alt_text,
+                published=False,
+            )
+            urls.append({'url': public_url, 'key': key, 'size': f.size, 'alt_text': alt_text, 'published': False})
+
+        return Response({'urls': urls}, status=201)
  
 class UploadPresignAdmin(generics.GenericAPIView):
     serializer_class = UploadRequestSerializer

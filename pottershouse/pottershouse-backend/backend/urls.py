@@ -77,6 +77,7 @@ public_api_patterns = [
     re_path(r'^api/v1/packages/?', include('packages.urls')),
     re_path(r'^api/v1/gallery/?', include('uploads.urls')),
     re_path(r'^api/v1/testimonials/?', include('testimonials.urls')),
+    re_path(r'^api/v1/settings/?', include('settings_app.public_urls')),
     re_path(r'^api/v1/faqs/?', include('faqs.urls')),
     re_path(r'^api/v1/email_outbox/?', include('email_outbox.urls')),
     re_path(r'^api/v1/idempotency_keys/?', include('idempotency_keys.urls')),

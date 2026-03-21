@@ -1,0 +1,11 @@
+{
+  "customer_name": "Rate Limit Test 1",
+  "phone": "09170000001",
+  "email": "rl1@example.com",
+  "event_type": "birthday",
+  "event_date_start": "2030-01-01T10:00:00Z",
+  "event_date_end": "2030-01-01T12:00:00Z",
+  "event_all_day": false,
+  "guests": 30,
+  "honeypot": ""
+}
